@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-const AGENT_ICONS = { chatgpt: "🤖", copilot: "🪟", google: "🔍", perplexity: "🌀" };
+const AGENTS_META = {
+  chatgpt: { short: "GPT", label: "ChatGPT", vendor: "OpenAI", hue: "#10a37f" },
+  copilot: { short: "CP", label: "Copilot", vendor: "Microsoft", hue: "#0078d4" },
+  google: { short: "G", label: "Google", vendor: "Gemini / AI Mode", hue: "#ea4335" },
+  perplexity: { short: "P", label: "Perplexity", vendor: "Comet / Shopping", hue: "#20808d" },
+};
 
 const ISSUE_LABELS = {
   missing_image: "No image",
@@ -16,7 +21,7 @@ const ISSUE_HINTS = {
   missing_image: "All agents need a product image; Perplexity and Google will not list without one.",
   missing_description: "Agents rank products by description quality.",
   short_description: "Longer descriptions improve agent answers and ranking.",
-  missing_gtin: "Perplexity effectively requires a GTIN; Google needs it (or brand + MPN) for identifier_exists.",
+  missing_gtin: "Perplexity effectively requires a GTIN; Google needs it (or brand + MPN).",
   missing_brand: "Used by Google and Perplexity for product matching.",
   missing_category: "Helps agents categorise the product.",
   out_of_stock: "Out-of-stock products are marked unavailable in every feed.",
@@ -35,12 +40,27 @@ function money(minor, currency) {
   return `${(minor / 100).toFixed(2)} ${(currency || "eur").toUpperCase()}`;
 }
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+const NAV = [
+  { id: "agents", label: "Agent reach", icon: "◉" },
+  { id: "catalog", label: "Catalog health", icon: "▤" },
+  { id: "connections", label: "Connections", icon: "⇄" },
+  { id: "orders", label: "Orders", icon: "✓" },
+];
+
 export default function Dashboard({ token, userName, onLogout, devMode }) {
   const [merchants, setMerchants] = useState([]);
   const [merchantId, setMerchantId] = useState(null);
   const [overview, setOverview] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState(null);
 
   const apiFetch = useCallback(
     async (path) => {
@@ -71,6 +91,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
     apiFetch(`/api/dashboard/merchants/${merchantId}/overview`)
       .then((data) => {
         setOverview(data);
+        setUpdatedAt(new Date());
         setError(null);
       })
       .catch((e) => setError(e.message));
@@ -82,71 +103,114 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
     return () => clearInterval(interval);
   }, [loadOverview]);
 
-  if (loading) return <div className="fullscreen"><p>Loading...</p></div>;
+  if (loading) {
+    return (
+      <div className="fullscreen">
+        <img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" />
+        <div className="loader" />
+      </div>
+    );
+  }
 
   const health = overview?.catalog_health;
   const summary = health?.summary;
   const connection = overview?.connection;
+  const activeAgents = (overview?.agents || []).filter((a) => a.status === "active").length;
+  const merchantName = merchants.find((m) => m.id === merchantId)?.name || merchantId;
 
   return (
-    <>
-      <header className="topbar">
-        <div className="topbar-left">
-          <img src="/dashboard/trustap-logo.svg" alt="Trustap" className="topbar-logo" />
-          <span className="topbar-title">Index <span>Merchant Dashboard</span></span>
-        </div>
-        <div className="topbar-right">
-          {merchants.length > 0 && (
-            <select
-              className="merchant-select"
-              value={merchantId || ""}
-              onChange={(e) => setMerchantId(e.target.value)}
-            >
-              {merchants.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-          )}
-          {userName && <span className="user-name">{userName}</span>}
-          {onLogout && (
-            <button className="btn btn-ghost" onClick={onLogout}>Log out</button>
-          )}
-          {devMode && <span className="pill pill-amber">dev mode</span>}
-        </div>
-      </header>
+    <div className="shell">
+      <aside className="sidebar">
+        <img src="/dashboard/trustap-logo.png" alt="Trustap" className="sidebar-logo" />
+        <div className="sidebar-product">INDEX</div>
 
-      <main className="container">
+        {merchants.length > 1 ? (
+          <select
+            className="merchant-select"
+            value={merchantId || ""}
+            onChange={(e) => setMerchantId(e.target.value)}
+          >
+            {merchants.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        ) : (
+          <div className="merchant-static">{merchantName}</div>
+        )}
+
+        <nav className="sidebar-nav">
+          {NAV.map((n) => (
+            <a key={n.id} href={`#${n.id}`}>
+              <span className="nav-icon">{n.icon}</span>
+              {n.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="sidebar-foot">
+          {devMode && <span className="pill pill-amber">dev mode</span>}
+          {userName && <div className="user-name" title={userName}>{userName}</div>}
+          {onLogout && (
+            <button className="btn btn-ghost btn-small" onClick={onLogout}>Log out</button>
+          )}
+          <div className="sidebar-claim">Buyer-protected agentic commerce</div>
+        </div>
+      </aside>
+
+      <main className="content">
         {error && <div className="banner banner-error">{error}</div>}
 
         {overview && (
           <>
+            <header className="hero">
+              <div>
+                <h1>{greeting()}, {merchantName}</h1>
+                <p className="hero-sub">
+                  {activeAgents > 0
+                    ? `${activeAgents} of ${overview.agents.length} AI agents pulled your catalog in the last 24 hours.`
+                    : "Your catalog is live; waiting for the first agent fetch."}
+                </p>
+              </div>
+              <div className="hero-side">
+                <span className="live-dot" />
+                <span>updated {updatedAt ? timeAgo(updatedAt.toISOString()) : ""}</span>
+                <button className="btn btn-ghost btn-small" onClick={loadOverview}>Refresh</button>
+              </div>
+            </header>
+
             <section className="stat-row">
               <Stat label="Products live" value={summary?.total ?? 0} />
-              <Stat label="Ready for all agents" value={summary?.ready_all ?? 0}
-                tone={summary && summary.ready_all < summary.total ? "amber" : "green"} />
+              <Stat
+                label="Ready for all agents"
+                value={`${summary?.ready_all ?? 0}/${summary?.total ?? 0}`}
+                tone={summary && summary.ready_all < summary.total ? "amber" : "green"}
+              />
               <Stat label="Paid orders" value={connection?.payments?.paid_count ?? 0} />
-              <Stat label="Revenue" value={money(connection?.payments?.revenue_minor ?? 0, "eur")} />
+              <Stat label="Revenue" value={money(connection?.payments?.revenue_minor ?? 0, "eur")} tone="primary" />
             </section>
 
-            <section>
-              <h2>Agent connections</h2>
-              <p className="section-sub">
-                Whether each AI shopping agent can reach your catalog, and when it last did.
-              </p>
+            <section id="agents" className="section">
+              <h2>Agent reach</h2>
+              <p className="section-sub">Whether each AI shopping agent can reach your catalog, and when it last did.</p>
               <div className="agent-grid">
                 {(overview.agents || []).map((a) => <AgentCard key={a.key} agent={a} />)}
               </div>
             </section>
 
-            <section>
-              <h2>Catalog health</h2>
-              <p className="section-sub">
-                Products that need extra information to be listed well by every agent.
-              </p>
+            <section id="catalog" className="section">
+              <div className="section-head">
+                <div>
+                  <h2>Catalog health</h2>
+                  <p className="section-sub">Products that need extra information to be listed well by every agent.</p>
+                </div>
+                {summary && summary.total > 0 && (
+                  <ReadinessRing ready={summary.ready_all} total={summary.total} />
+                )}
+              </div>
               <CatalogTable health={health} />
             </section>
 
-            <section>
+            <section id="connections" className="section">
               <h2>Connections</h2>
               <div className="conn-grid">
                 <ConnCard
@@ -155,7 +219,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
                   okText="Connected"
                   badText="Not connected"
                   detail={connection?.trustap?.connected
-                    ? "Checkouts settle through your Trustap account."
+                    ? "Checkouts settle through your Trustap account with buyer protection."
                     : "Add your Trustap API credentials to start selling."}
                 />
                 <ConnCard
@@ -176,29 +240,34 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
               </div>
             </section>
 
-            <section>
+            <section id="orders" className="section">
               <h2>Recent orders</h2>
               <CheckoutsTable checkouts={overview.recent_checkouts || []} />
             </section>
+
+            <footer className="content-foot">
+              Trustap Index · one catalog, every AI shopping agent
+            </footer>
           </>
         )}
       </main>
-    </>
+    </div>
   );
 }
 
 function Stat({ label, value, tone }) {
   return (
-    <div className="stat">
-      <div className={`stat-value ${tone ? `stat-${tone}` : ""}`}>{value}</div>
+    <div className={`stat ${tone ? `stat-tone-${tone}` : ""}`}>
+      <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
     </div>
   );
 }
 
 function AgentCard({ agent }) {
+  const meta = AGENTS_META[agent.key] || { short: "?", label: agent.name, vendor: "", hue: "#2949ce" };
   const statusMeta = {
-    active: { label: "Active", cls: "pill-green", hint: "Fetched your catalog in the last 24h" },
+    active: { label: "Active", cls: "pill-green", hint: "Fetched your catalog in the last 24h", pulse: true },
     quiet: { label: "Quiet", cls: "pill-amber", hint: "Has fetched before, nothing in the last 24h" },
     waiting: { label: "Ready", cls: "pill-gray", hint: "Surfaces are live, waiting for first fetch" },
   }[agent.status] || { label: agent.status, cls: "pill-gray" };
@@ -206,21 +275,55 @@ function AgentCard({ agent }) {
   return (
     <div className="card agent-card">
       <div className="agent-head">
-        <span className="agent-icon">{AGENT_ICONS[agent.key] || "•"}</span>
-        <span className="agent-name">{agent.name}</span>
-        <span className={`pill ${statusMeta.cls}`} title={statusMeta.hint}>{statusMeta.label}</span>
+        <span className="agent-avatar" style={{ background: meta.hue }}>{meta.short}</span>
+        <div className="agent-names">
+          <span className="agent-name">{meta.label}</span>
+          <span className="agent-vendor">{meta.vendor}</span>
+        </div>
+        <span className={`pill ${statusMeta.cls}`} title={statusMeta.hint}>
+          {statusMeta.pulse && <span className="pulse" />}
+          {statusMeta.label}
+        </span>
       </div>
       <div className="agent-meta">
-        <span>Last fetch: <strong>{timeAgo(agent.last_fetch)}</strong></span>
-        <span>{agent.hits_24h} fetches in 24h</span>
+        <div>
+          <div className="agent-metric">{timeAgo(agent.last_fetch)}</div>
+          <div className="agent-metric-label">last fetch</div>
+        </div>
+        <div>
+          <div className="agent-metric">{agent.hits_24h}</div>
+          <div className="agent-metric-label">fetches / 24h</div>
+        </div>
       </div>
       <div className="agent-links">
         {(agent.surfaces || []).map((s) => (
           <a key={s.surface} href={s.url} target="_blank" rel="noreferrer" title={s.url}>
-            {s.surface.replace(/_/g, " ")}
+            {s.surface.replace(/_/g, " ")} ↗
           </a>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ReadinessRing({ ready, total }) {
+  const pct = total > 0 ? Math.round((ready / total) * 100) : 0;
+  const r = 26;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="ring" title={`${ready} of ${total} products are fully ready for every agent`}>
+      <svg viewBox="0 0 64 64" width="64" height="64">
+        <circle cx="32" cy="32" r={r} fill="none" stroke="#e3e8f4" strokeWidth="7" />
+        <circle
+          cx="32" cy="32" r={r} fill="none"
+          stroke={pct === 100 ? "#2da44e" : "#4d65ff"}
+          strokeWidth="7" strokeLinecap="round"
+          strokeDasharray={`${(pct / 100) * c} ${c}`}
+          transform="rotate(-90 32 32)"
+        />
+        <text x="32" y="37" textAnchor="middle" className="ring-text">{pct}%</text>
+      </svg>
+      <span className="ring-label">agent ready</span>
     </div>
   );
 }
@@ -238,10 +341,7 @@ function CatalogTable({ health }) {
             <th>Product</th>
             <th>Price</th>
             <th>Stock</th>
-            <th>ChatGPT</th>
-            <th>Copilot</th>
-            <th>Google</th>
-            <th>Perplexity</th>
+            <th>Agent readiness</th>
             <th>Needs attention</th>
           </tr>
         </thead>
@@ -249,16 +349,19 @@ function CatalogTable({ health }) {
           {products.map((p) => (
             <tr key={p.id}>
               <td className="td-title">{p.title}</td>
-              <td>{money(p.price, p.currency)}</td>
+              <td className="td-nowrap">{money(p.price, p.currency)}</td>
               <td className={p.quantity <= 0 ? "td-bad" : ""}>{p.quantity}</td>
-              {["chatgpt", "copilot", "google", "perplexity"].map((k) => (
-                <td key={k} className="td-center">
+              <td className="td-nowrap">
+                {Object.entries(AGENTS_META).map(([k, meta]) => (
                   <span
-                    className={`dot ${p.readiness?.[k] ? "dot-green" : "dot-red"}`}
-                    title={p.readiness?.[k] ? "Listed with full data" : "Missing data for this agent"}
-                  />
-                </td>
-              ))}
+                    key={k}
+                    className={`mini-chip ${p.readiness?.[k] ? "mini-ok" : "mini-bad"}`}
+                    title={`${meta.label}: ${p.readiness?.[k] ? "listed with full data" : "missing data"}`}
+                  >
+                    {meta.short}
+                  </span>
+                ))}
+              </td>
               <td>
                 {(p.issues || []).length === 0 ? (
                   <span className="pill pill-green">All good</span>
@@ -311,10 +414,10 @@ function CheckoutsTable({ checkouts }) {
           {checkouts.map((c) => (
             <tr key={c.id}>
               <td className="td-title">{c.description}</td>
-              <td>{money(c.price, c.currency)}</td>
+              <td className="td-nowrap">{money(c.price, c.currency)}</td>
               <td><span className={`pill ${statusCls[c.status] || "pill-gray"}`}>{c.status.replace(/_/g, " ")}</span></td>
               <td>{c.transaction_id || "-"}</td>
-              <td>{timeAgo(c.created_at)}</td>
+              <td className="td-nowrap">{timeAgo(c.created_at)}</td>
             </tr>
           ))}
         </tbody>
