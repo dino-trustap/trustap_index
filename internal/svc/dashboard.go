@@ -80,12 +80,16 @@ func (api *API) DashboardOverview(ctx *middleware.Context, merchantID string) (*
 	if err != nil {
 		return nil, err
 	}
+	revenueTrend, err := ctx.Store.DailyPaidRevenue(merchantID, 7)
+	if err != nil {
+		revenueTrend = make([]int, 7)
+	}
 
 	overview := core.MerchantOverview{
 		"merchant":         map[string]any{"id": merchant.ID, "name": merchant.Name},
 		"agents":           api.agentStatuses(ctx, merchantID, statuses),
 		"catalog_health":   catalogHealth(products),
-		"connection":       connectionStatus(merchant, lastWebhook, paidCount, revenueMinor),
+		"connection":       connectionStatus(merchant, lastWebhook, paidCount, revenueMinor, revenueTrend),
 		"recent_checkouts": recentCheckouts(checkouts),
 	}
 	return &overview, nil
@@ -106,6 +110,10 @@ func (api *API) agentStatuses(ctx *middleware.Context, merchantID string, status
 
 	agents := make([]any, 0, len(agentSurfaces))
 	for _, agent := range agentSurfaces {
+		activity, err := ctx.Store.ActivityBuckets(merchantID, agent.Surfaces, 12, 2)
+		if err != nil {
+			activity = make([]int, 12)
+		}
 		var lastFetch *time.Time
 		hits24h := 0
 		surfaces := make([]any, 0, len(agent.Surfaces))
@@ -137,6 +145,7 @@ func (api *API) agentStatuses(ctx *middleware.Context, merchantID string, status
 			"status":   status,
 			"hits_24h": hits24h,
 			"surfaces": surfaces,
+			"activity": activity,
 		}
 		if lastFetch != nil {
 			entry["last_fetch"] = lastFetch.UTC().Format(time.RFC3339)
@@ -229,7 +238,7 @@ func catalogHealth(products []store.Product) map[string]any {
 	}
 }
 
-func connectionStatus(merchant middleware.Merchant, lastWebhook time.Time, paidCount, revenueMinor int) map[string]any {
+func connectionStatus(merchant middleware.Merchant, lastWebhook time.Time, paidCount, revenueMinor int, revenueTrend []int) map[string]any {
 	webhook := map[string]any{"last_event": nil}
 	if !lastWebhook.IsZero() {
 		webhook["last_event"] = lastWebhook.UTC().Format(time.RFC3339)
@@ -249,6 +258,7 @@ func connectionStatus(merchant middleware.Merchant, lastWebhook time.Time, paidC
 		"payments": map[string]any{
 			"paid_count":    paidCount,
 			"revenue_minor": revenueMinor,
+			"trend":         revenueTrend,
 		},
 	}
 }

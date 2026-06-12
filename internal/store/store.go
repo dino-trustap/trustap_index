@@ -375,3 +375,65 @@ func (s *Store) PaymentsSummary(merchantID string) (paidCount int, revenueMinor 
 	}
 	return r.Count, r.Revenue, nil
 }
+
+// ActivityBuckets returns fetch counts for the given surfaces over the last
+// `buckets` windows of `bucketHours` hours, oldest first, for sparklines.
+func (s *Store) ActivityBuckets(merchantID string, surfaces []string, buckets, bucketHours int) ([]int, error) {
+	out := make([]int, buckets)
+	if len(surfaces) == 0 {
+		return out, nil
+	}
+	windowStart := time.Now().Add(-time.Duration(buckets*bucketHours) * time.Hour)
+
+	type row struct {
+		Bucket int
+		Hits   int
+	}
+	var rows []row
+	err := s.db.Model(&SurfaceHit{}).
+		Select("floor(extract(epoch from created_at) / ?)::bigint as bucket, count(*) as hits", bucketHours*3600).
+		Where("merchant_id = ? AND surface IN (?) AND created_at > ?", merchantID, surfaces, windowStart).
+		Group("bucket").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, fmt.Errorf("couldn't bucket surface hits: %w", err)
+	}
+
+	base := int(windowStart.Unix()) / (bucketHours * 3600)
+	for _, r := range rows {
+		idx := r.Bucket - base
+		if idx >= 0 && idx < buckets {
+			out[idx] = r.Hits
+		}
+	}
+	return out, nil
+}
+
+// DailyPaidRevenue returns paid checkout volume in minor units per day for
+// the last `days` days, oldest first.
+func (s *Store) DailyPaidRevenue(merchantID string, days int) ([]int, error) {
+	out := make([]int, days)
+	windowStart := time.Now().AddDate(0, 0, -(days - 1)).Truncate(24 * time.Hour)
+
+	type row struct {
+		Day     time.Time
+		Revenue int
+	}
+	var rows []row
+	err := s.db.Model(&Checkout{}).
+		Select("date_trunc('day', updated_at) as day, coalesce(sum(price_minor), 0) as revenue").
+		Where("merchant_id = ? AND status = ? AND updated_at > ?", merchantID, StatusPaid, windowStart).
+		Group("day").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, fmt.Errorf("couldn't aggregate daily revenue: %w", err)
+	}
+
+	for _, r := range rows {
+		idx := int(r.Day.Sub(windowStart).Hours() / 24)
+		if idx >= 0 && idx < days {
+			out[idx] = r.Revenue
+		}
+	}
+	return out, nil
+}

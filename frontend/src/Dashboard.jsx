@@ -14,6 +14,9 @@ const ICONS = {
   link: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5.5 8.5l5-5M4 12l-1 1a2.4 2.4 0 01-3.4-3.4L1 8.2M12 4l1-1a2.4 2.4 0 113.4 3.4L15 7.8" transform="translate(-0.5 0)"/></svg>,
   receipt: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2h10v12l-1.7-1.2L9.6 14l-1.6-1.2L6.4 14l-1.7-1.2L3 14z"/><path d="M5.5 5.5h5M5.5 8h5"/></svg>,
   lock: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>,
+  open: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 3.5H3.8A1.3 1.3 0 002.5 4.8v7.4a1.3 1.3 0 001.3 1.3h7.4a1.3 1.3 0 001.3-1.3V9.5M9.5 2.5h4v4M13 3L7.5 8.5"/></svg>,
+  copy: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5.5" y="5.5" width="8" height="8" rx="1.2"/><path d="M10.5 5.5v-2a1.2 1.2 0 00-1.2-1.2h-6a1.2 1.2 0 00-1.2 1.2v6a1.2 1.2 0 001.2 1.2h2"/></svg>,
+  check: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>,
 };
 
 const ISSUE_LABELS = {
@@ -214,6 +217,57 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
   );
 }
 
+/* ---------------- charts ---------------- */
+
+function Bars({ data, height = 30, color = "var(--primary)" }) {
+  const max = Math.max(...data, 1);
+  const w = 7;
+  const gap = 3;
+  return (
+    <svg
+      className="sparkbars"
+      width={data.length * (w + gap) - gap}
+      height={height}
+      role="img"
+      aria-label="activity over the last 24 hours"
+    >
+      {data.map((v, i) => {
+        const h = v === 0 ? 2 : Math.max(3, Math.round((v / max) * height));
+        return (
+          <rect
+            key={i}
+            x={i * (w + gap)}
+            y={height - h}
+            width={w}
+            height={h}
+            rx="1.5"
+            fill={v === 0 ? "var(--line)" : color}
+          >
+            <title>{`${v} fetches`}</title>
+          </rect>
+        );
+      })}
+    </svg>
+  );
+}
+
+function Trend({ data, width = 120, height = 34 }) {
+  const max = Math.max(...data, 1);
+  const stepX = width / Math.max(data.length - 1, 1);
+  const points = data.map((v, i) => [i * stepX, height - 3 - (v / max) * (height - 8)]);
+  const line = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const area = `0,${height} ${line} ${width},${height}`;
+  return (
+    <svg className="trendline" width={width} height={height} role="img" aria-label="7 day trend">
+      <polygon points={area} fill="var(--primary-soft)" />
+      <polyline points={line} fill="none" stroke="var(--primary)" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+      {data.some((v) => v > 0) && (
+        <circle cx={points[points.length - 1][0]} cy={points[points.length - 1][1]} r="2.4" fill="var(--primary)" />
+      )}
+    </svg>
+  );
+}
+
 /* ---------------- overview ---------------- */
 
 function OverviewPage({ overview, navigate }) {
@@ -223,75 +277,102 @@ function OverviewPage({ overview, navigate }) {
   const products = overview.catalog_health?.products || [];
   const needAttention = products.filter((p) => (p.issues || []).length > 0);
   const orders = (overview.recent_checkouts || []).slice(0, 5);
+  const fetches24h = agents.reduce((acc, a) => acc + (a.hits_24h || 0), 0);
+  const activeAgents = agents.filter((a) => a.status === "active").length;
+  const trend = connection?.payments?.trend || [];
 
   return (
     <>
       <section className="stat-row">
-        <Stat label="Products live" value={summary?.total ?? 0} />
-        <Stat
-          label="Ready for all agents"
-          value={`${summary?.ready_all ?? 0}/${summary?.total ?? 0}`}
-          tone={summary && summary.ready_all < summary.total ? "amber" : "green"}
-        />
-        <Stat label="Paid orders" value={connection?.payments?.paid_count ?? 0} />
-        <Stat label="Revenue" value={money(connection?.payments?.revenue_minor ?? 0, "eur")} tone="primary" />
+        <div className="card stat">
+          <div className="stat-label">Products live</div>
+          <div className="stat-value">{summary?.total ?? 0}</div>
+          <div className="stat-context">
+            {summary?.ready_all ?? 0} fully agent ready
+          </div>
+        </div>
+        <div className="card stat">
+          <div className="stat-label">Agent fetches · 24h</div>
+          <div className="stat-value">{fetches24h}</div>
+          <div className="stat-context">{activeAgents} of {agents.length} agents active</div>
+        </div>
+        <div className="card stat">
+          <div className="stat-label">Paid orders</div>
+          <div className="stat-value">{connection?.payments?.paid_count ?? 0}</div>
+          <div className="stat-context">settled via Trustap</div>
+        </div>
+        <div className="card stat">
+          <div className="stat-label">Revenue · 7d</div>
+          <div className="stat-row-inline">
+            <div className="stat-value stat-accent">{money(connection?.payments?.revenue_minor ?? 0, "eur")}</div>
+            <Trend data={trend} width={86} height={30} />
+          </div>
+          <div className="stat-context">all time, paid checkouts</div>
+        </div>
       </section>
 
       <div className="grid-2">
-        <div className="card">
-          <h2>Agent activity</h2>
-          {agents.map((a) => {
-            const m = AGENTS_META[a.key] || { short: "?", label: a.name };
-            return (
-              <div className="list-row" key={a.key}>
-                <span className="grow" style={{ fontWeight: 600 }}>{m.label}</span>
-                <span className="dim">{a.hits_24h} fetches · {timeAgo(a.last_fetch)}</span>
-                <StatusPill status={a.status} />
-              </div>
-            );
-          })}
-          <div style={{ marginTop: "0.7rem" }}>
-            <button className="link-btn" onClick={() => navigate("agents")}>View agent surfaces →</button>
+        <div className="card card-flush">
+          <div className="card-head">
+            <h2>Agent activity</h2>
+            <button className="link-btn" onClick={() => navigate("agents")}>View surfaces</button>
+          </div>
+          <div className="card-body">
+            {agents.map((a) => {
+              const m = AGENTS_META[a.key] || { short: "?", label: a.name };
+              return (
+                <div className="list-row" key={a.key}>
+                  <StatusDot status={a.status} />
+                  <span className="grow strong">{m.label}</span>
+                  <Bars data={a.activity || []} height={20} />
+                  <span className="dim w-72">{a.hits_24h} · {timeAgo(a.last_fetch)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="card">
-          <h2>Needs attention</h2>
-          {needAttention.length === 0 ? (
-            <p className="empty" style={{ padding: "0.8rem 0" }}>Every product is fully listed. Nothing to fix.</p>
-          ) : (
-            needAttention.slice(0, 5).map((p) => (
-              <div className="list-row" key={p.id}>
-                <span className="grow" style={{ fontWeight: 600 }}>{p.title}</span>
-                <span className="dim">{(p.issues || []).length} issue{p.issues.length > 1 ? "s" : ""}</span>
-                <span className="pill pill-amber">{ISSUE_LABELS[p.issues[0]] || p.issues[0]}</span>
-              </div>
-            ))
-          )}
-          {needAttention.length > 0 && (
-            <div style={{ marginTop: "0.7rem" }}>
-              <button className="link-btn" onClick={() => navigate("catalog")}>Open catalog →</button>
-            </div>
-          )}
+        <div className="card card-flush">
+          <div className="card-head">
+            <h2>Needs attention</h2>
+            {needAttention.length > 0 && (
+              <button className="link-btn" onClick={() => navigate("catalog")}>Open catalog</button>
+            )}
+          </div>
+          <div className="card-body">
+            {needAttention.length === 0 ? (
+              <p className="empty-inline">Every product is fully listed. Nothing to fix.</p>
+            ) : (
+              needAttention.slice(0, 5).map((p) => (
+                <div className="list-row" key={p.id}>
+                  <span className="grow strong">{p.title}</span>
+                  <ReadyCount readiness={p.readiness} />
+                  <span className="chip">{ISSUE_LABELS[p.issues[0]] || p.issues[0]}{p.issues.length > 1 ? ` +${p.issues.length - 1}` : ""}</span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: "0.9rem" }}>
-        <h2>Latest orders</h2>
-        {orders.length === 0 ? (
-          <p className="empty" style={{ padding: "0.8rem 0" }}>No orders yet.</p>
-        ) : (
-          orders.map((c) => (
-            <div className="list-row" key={c.id}>
-              <span className="grow" style={{ fontWeight: 600 }}>{c.description}</span>
-              <span className="dim">{money(c.price, c.currency)}</span>
-              <span className="dim">{timeAgo(c.created_at)}</span>
-              <OrderPill status={c.status} />
-            </div>
-          ))
-        )}
-        <div style={{ marginTop: "0.7rem" }}>
-          <button className="link-btn" onClick={() => navigate("orders")}>View all orders →</button>
+      <div className="card card-flush" style={{ marginTop: "0.9rem" }}>
+        <div className="card-head">
+          <h2>Latest orders</h2>
+          <button className="link-btn" onClick={() => navigate("orders")}>View all</button>
+        </div>
+        <div className="card-body">
+          {orders.length === 0 ? (
+            <p className="empty-inline">No orders yet.</p>
+          ) : (
+            orders.map((c) => (
+              <div className="list-row" key={c.id}>
+                <OrderDot status={c.status} />
+                <span className="grow strong">{c.description}</span>
+                <span className="dim">{timeAgo(c.created_at)}</span>
+                <span className="num strong w-90">{money(c.price, c.currency)}</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </>
@@ -311,36 +392,35 @@ function AgentsPage({ agents }) {
 function AgentCard({ agent }) {
   const meta = AGENTS_META[agent.key] || { short: "?", label: agent.name, vendor: "" };
   return (
-    <div className={`card ${agent.status === "active" ? "is-active" : ""}`}>
-      <div className="agent-head">
-        <span className="agent-avatar">{meta.short}</span>
-        <div className="agent-names">
-          <span className="agent-name">{meta.label}</span>
-          <span className="agent-vendor">{meta.vendor}</span>
-        </div>
-        <StatusPill status={agent.status} />
-      </div>
-      <div className="agent-stats">
-        <div>
-          <div className="agent-metric">{timeAgo(agent.last_fetch)}</div>
-          <div className="agent-metric-label">last fetch</div>
-        </div>
-        <div>
-          <div className="agent-metric">{agent.hits_24h}</div>
-          <div className="agent-metric-label">fetches / 24h</div>
-        </div>
-      </div>
-      <div>
-        {(agent.surfaces || []).map((s) => (
-          <div className="surface-row" key={s.surface}>
-            <span className="surface-name">{s.surface.replace(/_/g, " ")}</span>
-            <span className="dim" style={{ fontSize: "0.74rem", color: "var(--text-3)" }}>
-              {s.last_fetch ? timeAgo(s.last_fetch) : "never fetched"}
-            </span>
-            <a href={s.url} target="_blank" rel="noreferrer">open</a>
-            <CopyButton text={s.url} />
+    <div className={`card card-flush ${agent.status === "active" ? "is-active" : ""}`}>
+      <div className="card-head">
+        <div className="agent-head">
+          <span className="agent-avatar">{meta.short}</span>
+          <div className="agent-names">
+            <span className="agent-name">{meta.label}</span>
+            <span className="agent-vendor">{meta.vendor}</span>
           </div>
-        ))}
+        </div>
+        <StatusDot status={agent.status} withLabel />
+      </div>
+      <div className="card-body">
+        <div className="agent-chart">
+          <Bars data={agent.activity || []} height={34} />
+          <div className="agent-chart-meta">
+            <span><strong>{agent.hits_24h}</strong> fetches · 24h</span>
+            <span>last {timeAgo(agent.last_fetch)}</span>
+          </div>
+        </div>
+        <div className="surface-list">
+          {(agent.surfaces || []).map((s) => (
+            <div className="surface-row" key={s.surface}>
+              <span className="surface-name">{s.surface.replace(/_/g, " ")}</span>
+              <span className="surface-when">{s.last_fetch ? timeAgo(s.last_fetch) : "never"}</span>
+              <a className="icon-btn" href={s.url} target="_blank" rel="noreferrer" title="Open">{ICONS.open}</a>
+              <CopyButton text={s.url} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -350,7 +430,8 @@ function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
-      className={`copy-btn ${copied ? "copied" : ""}`}
+      className={`icon-btn ${copied ? "copied" : ""}`}
+      title={copied ? "Copied" : "Copy URL"}
       onClick={() => {
         navigator.clipboard.writeText(text).then(() => {
           setCopied(true);
@@ -358,12 +439,25 @@ function CopyButton({ text }) {
         });
       }}
     >
-      {copied ? "Copied" : "Copy URL"}
+      {copied ? ICONS.check : ICONS.copy}
     </button>
   );
 }
 
 /* ---------------- catalog ---------------- */
+
+function ReadyCount({ readiness }) {
+  const entries = Object.keys(AGENTS_META);
+  const ready = entries.filter((k) => readiness?.[k]).length;
+  return (
+    <span className="ready-squares" title={entries.map((k) => `${AGENTS_META[k].label}: ${readiness?.[k] ? "ready" : "missing data"}`).join("\n")}>
+      {entries.map((k) => (
+        <i key={k} className={readiness?.[k] ? "sq-ok" : "sq-bad"} />
+      ))}
+      <span className="dim">{ready}/{entries.length}</span>
+    </span>
+  );
+}
 
 function CatalogPage({ health }) {
   const [query, setQuery] = useState("");
@@ -377,7 +471,7 @@ function CatalogPage({ health }) {
   return (
     <>
       <div className="progress-row">
-        <span style={{ whiteSpace: "nowrap" }}>{pct}% agent ready</span>
+        <span style={{ whiteSpace: "nowrap" }}><strong>{pct}%</strong> agent ready</span>
         <div className="progress"><div style={{ width: `${pct}%` }} /></div>
         <input
           className="search"
@@ -399,8 +493,8 @@ function CatalogPage({ health }) {
             <thead>
               <tr>
                 <th>Product</th>
-                <th>Price</th>
-                <th>Stock</th>
+                <th className="num">Price</th>
+                <th className="num">Stock</th>
                 <th>Agent readiness</th>
                 <th>Needs attention</th>
               </tr>
@@ -409,22 +503,12 @@ function CatalogPage({ health }) {
               {filtered.map((p) => (
                 <tr key={p.id}>
                   <td className="td-title">{p.title}</td>
-                  <td className="td-nowrap">{money(p.price, p.currency)}</td>
-                  <td className={p.quantity <= 0 ? "td-bad" : ""}>{p.quantity}</td>
-                  <td className="td-nowrap">
-                    {Object.entries(AGENTS_META).map(([k, meta]) => (
-                      <span
-                        key={k}
-                        className={`mini-chip ${p.readiness?.[k] ? "mini-ok" : "mini-bad"}`}
-                        title={`${meta.label}: ${p.readiness?.[k] ? "listed with full data" : "missing data"}`}
-                      >
-                        {meta.short}
-                      </span>
-                    ))}
-                  </td>
+                  <td className="td-nowrap num">{money(p.price, p.currency)}</td>
+                  <td className={`num ${p.quantity <= 0 ? "td-bad" : ""}`}>{p.quantity}</td>
+                  <td className="td-nowrap"><ReadyCount readiness={p.readiness} /></td>
                   <td>
                     {(p.issues || []).length === 0 ? (
-                      <span className="pill pill-green">Complete</span>
+                      <span className="ok-text">{ICONS.check} Complete</span>
                     ) : (
                       (p.issues || []).map((iss) => (
                         <span key={iss} className="chip" title={ISSUE_HINTS[iss] || iss}>
@@ -448,43 +532,52 @@ function CatalogPage({ health }) {
 function ConnectionsPage({ connection }) {
   return (
     <div className="conn-grid">
-      <ConnCard
-        title="Trustap payments"
-        ok={connection?.trustap?.connected}
-        okText="Connected"
-        badText="Not connected"
-        detail={connection?.trustap?.connected
-          ? "Checkouts settle through your Trustap account with buyer protection."
-          : "Add your Trustap API credentials to start selling."}
-      />
-      <ConnCard
-        title="Payment notifications"
-        ok={!!connection?.webhooks?.last_event}
-        okText={`Last event ${timeAgo(connection?.webhooks?.last_event)}`}
-        badText="No events yet"
-        detail="Trustap notifies the Index when buyers pay; orders and stock update automatically."
-      />
-      <ConnCard
-        title="Store sync"
-        ok={connection?.store_sync?.status === "connected"}
-        okText="Synced"
-        badText="Not connected"
-        detail={connection?.store_sync?.note}
-        action={<button className="btn btn-disabled" disabled>Connect your store (coming soon)</button>}
-      />
-    </div>
-  );
-}
-
-function ConnCard({ title, ok, okText, badText, detail, action }) {
-  return (
-    <div className="card">
-      <div className="conn-head">
-        <span className="conn-title">{title}</span>
-        <span className={`pill ${ok ? "pill-green" : "pill-gray"}`}>{ok ? okText : badText}</span>
+      <div className="card card-flush">
+        <div className="card-head">
+          <h2>Trustap payments</h2>
+          <StatusDot status={connection?.trustap?.connected ? "active" : "waiting"} withLabel
+            labels={{ active: "Connected", waiting: "Not connected" }} />
+        </div>
+        <div className="card-body">
+          <p className="conn-detail">
+            {connection?.trustap?.connected
+              ? "Checkouts settle through your Trustap account with buyer protection on every order."
+              : "Add your Trustap API credentials to start selling."}
+          </p>
+        </div>
+        <div className="card-foot">Merchant of record stays with you; Trustap handles the payment flow.</div>
       </div>
-      <p className="conn-detail">{detail}</p>
-      {action}
+
+      <div className="card card-flush">
+        <div className="card-head">
+          <h2>Payment notifications</h2>
+          <StatusDot status={connection?.webhooks?.last_event ? "active" : "waiting"} withLabel
+            labels={{ active: "Receiving", waiting: "No events yet" }} />
+        </div>
+        <div className="card-body">
+          <p className="conn-detail">
+            Trustap notifies the Index when buyers pay; orders and stock update automatically.
+          </p>
+        </div>
+        <div className="card-foot">
+          {connection?.webhooks?.last_event
+            ? `Last event ${timeAgo(connection.webhooks.last_event)}`
+            : "Waiting for the first webhook from Trustap"}
+        </div>
+      </div>
+
+      <div className="card card-flush">
+        <div className="card-head">
+          <h2>Store sync</h2>
+          <StatusDot status={connection?.store_sync?.status === "connected" ? "active" : "waiting"} withLabel
+            labels={{ active: "Synced", waiting: "Not connected" }} />
+        </div>
+        <div className="card-body">
+          <p className="conn-detail">{connection?.store_sync?.note}</p>
+          <button className="btn btn-disabled btn-small" disabled>Connect your store (coming soon)</button>
+        </div>
+        <div className="card-foot">Two-way inventory sync arrives with the store connector.</div>
+      </div>
     </div>
   );
 }
@@ -499,16 +592,19 @@ function OrdersPage({ checkouts }) {
     <div className="card table-card">
       <table>
         <thead>
-          <tr><th>Order</th><th>Amount</th><th>Status</th><th>Trustap tx</th><th>Created</th></tr>
+          <tr><th>Order</th><th>Status</th><th>Trustap tx</th><th>Created</th><th className="num">Amount</th></tr>
         </thead>
         <tbody>
           {checkouts.map((c) => (
             <tr key={c.id}>
-              <td className="td-title">{c.description}</td>
-              <td className="td-nowrap">{money(c.price, c.currency)}</td>
-              <td><OrderPill status={c.status} /></td>
-              <td>{c.transaction_id || "-"}</td>
+              <td className="td-title">
+                {c.description}
+                <span className="row-sub">{c.id.slice(0, 8)}</span>
+              </td>
+              <td><OrderDot status={c.status} withLabel /></td>
+              <td className="num">{c.transaction_id || "-"}</td>
               <td className="td-nowrap">{timeAgo(c.created_at)}</td>
+              <td className="td-nowrap num strong">{money(c.price, c.currency)}</td>
             </tr>
           ))}
         </tbody>
@@ -519,35 +615,31 @@ function OrdersPage({ checkouts }) {
 
 /* ---------------- shared ---------------- */
 
-function Stat({ label, value, tone }) {
-  return (
-    <div className={`card stat ${tone ? `stat-tone-${tone}` : ""}`}>
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
-    </div>
-  );
-}
-
-function StatusPill({ status }) {
+function StatusDot({ status, withLabel, labels }) {
   const meta = {
-    active: { label: "Active", cls: "pill-green", hint: "Fetched your catalog in the last 24h", pulse: true },
-    quiet: { label: "Quiet", cls: "pill-amber", hint: "Has fetched before, nothing in the last 24h" },
-    waiting: { label: "Ready", cls: "pill-gray", hint: "Surfaces are live, waiting for first fetch" },
-  }[status] || { label: status, cls: "pill-gray" };
+    active: { label: labels?.active || "Active", cls: "dot-green", hint: "Fetched your catalog in the last 24h" },
+    quiet: { label: labels?.quiet || "Quiet", cls: "dot-amber", hint: "Has fetched before, nothing in the last 24h" },
+    waiting: { label: labels?.waiting || "Ready", cls: "dot-gray", hint: "Live, waiting for first activity" },
+  }[status] || { label: status, cls: "dot-gray" };
   return (
-    <span className={`pill ${meta.cls}`} title={meta.hint}>
-      {meta.pulse && <span className="pulse" />}
-      {meta.label}
+    <span className="status-dot" title={meta.hint}>
+      <i className={meta.cls} />
+      {withLabel && <span>{meta.label}</span>}
     </span>
   );
 }
 
-function OrderPill({ status }) {
-  const cls = {
-    paid: "pill-green",
-    pending_payment: "pill-amber",
-    cancelled: "pill-gray",
-    failed: "pill-red",
-  }[status] || "pill-gray";
-  return <span className={`pill ${cls}`}>{status.replace(/_/g, " ")}</span>;
+function OrderDot({ status, withLabel = false }) {
+  const meta = {
+    paid: { label: "Paid", cls: "dot-green" },
+    pending_payment: { label: "Pending payment", cls: "dot-amber" },
+    cancelled: { label: "Cancelled", cls: "dot-gray" },
+    failed: { label: "Failed", cls: "dot-red" },
+  }[status] || { label: status, cls: "dot-gray" };
+  return (
+    <span className="status-dot">
+      <i className={meta.cls} />
+      {withLabel ? <span>{meta.label}</span> : <span className="sr-only">{meta.label}</span>}
+    </span>
+  );
 }
