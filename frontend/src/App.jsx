@@ -40,17 +40,15 @@ function SsoGate() {
 function FullScreen({ message, action, actionLabel, logo }) {
   return (
     <div className="fullscreen">
-      {logo && (
-        <div className="logo-plate">
-          <img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" />
-        </div>
-      )}
-      <p>{message}</p>
-      {action && (
-        <button className="btn btn-primary" onClick={action}>
-          {actionLabel}
-        </button>
-      )}
+      <div className="login-card">
+        {logo && <img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" />}
+        <p>{message}</p>
+        {action && (
+          <button className="btn btn-primary" onClick={action}>
+            {actionLabel}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
