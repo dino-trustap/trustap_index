@@ -1,0 +1,28 @@
+package {{.Pkg}}
+
+import (
+	"time"
+
+	rest_api_json "github.com/trustap/rest_api/pkg/json"
+)
+
+{{range .Definitions}}
+	{{if eq .SwaggerType "string"}}
+		{{template "string_model.gotempl" .}}
+	{{else if eq .SwaggerType "object"}}
+	    {{if eq .AllowAdditionalProperties true}}
+	        {{template "map_model.gotempl" .}}
+	    {{ else }}
+		    {{template "struct_model.gotempl" .}}
+		{{end}}
+	{{end}}
+{{end}}
+
+
+
+
+
+
+
+
+

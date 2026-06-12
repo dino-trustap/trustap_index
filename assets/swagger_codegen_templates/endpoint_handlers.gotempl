@@ -1,0 +1,105 @@
+package {{.Pkg}}
+
+import (
+	{{range $path, $alias := .Imports}}
+		{{if $alias}}{{$alias}}{{end}} "{{$path}}"
+	{{- end}}
+)
+
+{{range .Endpoints}}
+	func {{.Name.Camel}}(
+		api Api,
+		ctxRefiner {{$.ServerPackageName}}.ContextRefiner,
+		globalReqCtx {{$.GlobalContextType}},
+		w http.ResponseWriter,
+		r *http.Request,
+	) (
+		{{- if .SuccessResponse.OptionalGoType}}
+			{{.SuccessResponse.OptionalGoType}},
+		{{- else}}
+			any,
+		{{- end}}
+		error,
+	) {
+		localReqCtx, err := ctxRefiner.RefineTo{{.Context.TypeID.Pascal}}Context(globalReqCtx)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't refine context: %w", err)
+		}
+
+		{{if .Params.Path}}
+			pathParams, err := globalReqCtx.PathParams()
+			if err != nil {
+				return nil, fmt.Errorf("couldn't access path parameters: %w", err)
+			}
+
+			{{range .Params.Path -}}
+				{{.Name.Camel}}, err := swagger_rest.HandlePath{{.FuncSuffix}}(pathParams, "{{.Name.Snake}}")
+				if err != nil {
+					return nil, fmt.Errorf("couldn't get '{{.Name.Snake}}' from path: %w", err)
+				}
+			{{end -}}
+		{{end}}
+
+		{{if .Params.Query}}
+			// FIXME `r.URL.Query` silently discards malformed value pairs.
+			q := r.URL.Query()
+
+			{{range .Params.Query -}}
+				{{.Name.Camel}}, err := swagger_rest.HandleQuery{{.FuncSuffix}}(q, "{{.Name.Snake}}")
+				if err != nil {
+					return nil, fmt.Errorf("couldn't get query parameter '{{.Name.Snake}}': %w", err)
+				}
+			{{end -}}
+
+			query := &{{.Name.Pascal}}Query{
+				{{range .Params.Query -}}
+					{{.Name.Pascal}}: {{.Name.Camel}},
+				{{end -}}
+			}
+		{{end}}
+
+		{{if .Params.OptionalBodyType}}
+			body := &{{.Params.OptionalBodyType}}{}
+			err = json.NewDecoder(r.Body).Decode(body)
+			if err != nil {
+				clientErr, ok := swagger_rest.JSONDecodeErrorToClientError(err)
+				if ok {
+					return nil, clientErr
+				}
+				return nil, fmt.Errorf("couldn't decode body: %w", err)
+			}
+		{{end}}
+
+		return {{if not .SuccessResponse.OptionalGoType}}nil,{{end}} api.{{.Name.Pascal}}(
+			localReqCtx,
+			{{range .Params.Path -}}
+				{{.Name.Camel}},
+			{{end -}}
+			{{if .Params.Query -}}
+				query,
+			{{end -}}
+			{{if .Params.OptionalBodyType -}}
+				body,
+			{{end -}}
+		)
+	}
+
+	{{if .Params.Query}}
+
+		type {{.Name.Pascal}}Query struct {
+			{{range .Params.Query -}}
+				{{.Name.Pascal}} {{.GoType}}
+			{{end}}
+		}
+
+	{{end}}
+{{end}}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE directories
+.idea/
+.vscode/
+
+# Build artifacts
+target/
+!target/.gitkeep
+
+# Configuration files (keep samples only)
+configs/api.yaml
+configs/*.yaml
+!configs/*.sample.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+# local env
+.env
+.env.*
+!.env.example
+
+# real credentials live here; only the sample is tracked
+configs/api.yaml

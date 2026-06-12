@@ -1,0 +1,29 @@
+type {{.Name.Pascal}} string
+
+{{if .Enum}}
+	const (
+		{{range .Enum}}
+			{{$.Name.Pascal}}{{.Pascal}} {{$.Name.Pascal}} = "{{.Snake}}"
+		{{- end}}
+	)
+
+
+	func Parse{{$.Name.Pascal}}(s string) ({{$.Name.Pascal}}, bool) {
+		switch {{$.Name.Pascal}}(s) {
+			{{- range .Enum}}
+				case {{$.Name.Pascal}}{{.Pascal}}:
+					return {{$.Name.Pascal}}{{.Pascal}}, true
+			{{- end}}
+		}
+		return {{$.Name.Pascal}}(s), false
+	}
+{{end}}
+
+
+
+
+
+
+
+
+

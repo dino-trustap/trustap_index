@@ -1,0 +1,37 @@
+package {{.Pkg}}
+
+import (
+	{{range $path, $alias := .Imports}}
+		{{if $alias}}{{$alias}}{{end}} "{{$path}}"
+	{{- end}}
+)
+
+type Api interface{
+	{{range .Endpoints}}
+		{{.Name.Pascal}}(
+			ctx {{.Context.Type}},
+			{{range .Params.Path -}}
+				{{.Name.Camel}} {{.GoType}},
+			{{end -}}
+			{{if .Params.Query -}}
+				query *{{.Name.Pascal}}Query,
+			{{end -}}
+			{{if .Params.OptionalBodyType -}}
+				body *{{.Params.OptionalBodyType}},
+			{{end -}}
+		) {{if .SuccessResponse.OptionalGoType -}}
+			({{.SuccessResponse.OptionalGoType}}, error)
+		{{else -}}
+			error
+		{{end}}
+	{{end}}
+}
+
+
+
+
+
+
+
+
+

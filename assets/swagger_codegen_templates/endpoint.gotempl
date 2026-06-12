@@ -1,0 +1,35 @@
+package swagger_server
+
+import (
+	{{range $path, $alias := .Imports}}
+		{{if $alias}}{{$alias}}{{end}} "{{$path}}"
+	{{- end}}
+)
+
+type Endpoint struct {
+	Method string
+	Path   string
+	Meta   *{{.EndpointMetadataType}}
+	Handle Handler
+}
+
+type Handler func(
+	context {{.GlobalContextType}},
+	w http.ResponseWriter,
+	r *http.Request,
+) error
+
+type ContextRefiner interface {
+	{{range $namePascal, $typ := .LocalContextTypes}}
+		RefineTo{{$namePascal}}Context(context {{$.GlobalContextType}}) ({{$typ}}, error)
+	{{- end}}
+}
+
+
+
+
+
+
+
+
+

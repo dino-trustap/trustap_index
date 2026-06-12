@@ -1,0 +1,213 @@
+definitions:
+  CreateCheckoutRequest:
+    type: object
+    required:
+      - merchant_id
+      - buyer_email
+      - buyer_first_name
+      - buyer_last_name
+      - buyer_country_code
+    properties:
+      merchant_id:
+        type: string
+        description: ID of the merchant (must be configured with Trustap credentials)
+      product_id:
+        type: string
+        description: Catalog product to buy; derives description, price, and currency
+      quantity:
+        type: integer
+        description: Units of product_id to buy (default 1)
+      description:
+        type: string
+        description: Order description (required when no product_id is given)
+      price:
+        type: integer
+        description: Price in smallest unit (required when no product_id is given)
+      currency:
+        type: string
+        description: Three-letter lowercase currency code (required when no product_id is given)
+      buyer_email:
+        type: string
+      buyer_first_name:
+        type: string
+      buyer_last_name:
+        type: string
+      buyer_country_code:
+        type: string
+        description: ISO 3166-1 alpha-2 country code of the buyer
+      buyer_ip:
+        type: string
+        description: Buyer IP for Trustap ToS acceptance (optional, used for disputes/chargebacks)
+
+  Checkout:
+    type: object
+    required:
+      - id
+      - merchant_id
+      - status
+    properties:
+      id:
+        type: string
+      merchant_id:
+        type: string
+      description:
+        type: string
+      price:
+        type: integer
+      charge:
+        type: integer
+        description: Trustap charge in the currency's smallest unit
+      currency:
+        type: string
+      status:
+        type: string
+        description: created | pending_payment | paid | complaint_period | released | failed
+      transaction_id:
+        type: integer
+        description: Trustap transaction ID
+      pay_url:
+        type: string
+        description: Trustap actions page URL where the buyer pays
+      buyer_returned:
+        type: boolean
+      created_at:
+        type: string
+
+  PaymentReturn:
+    type: object
+    required:
+      - checkout_id
+      - status
+    properties:
+      checkout_id:
+        type: string
+      status:
+        type: string
+
+  TrustapWebhookEvent:
+    type: object
+    additionalProperties: true
+
+  WebhookAck:
+    type: object
+    required:
+      - status
+    properties:
+      status:
+        type: string
+
+  CreateProductRequest:
+    type: object
+    required:
+      - title
+      - price
+      - currency
+      - quantity
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      price:
+        type: integer
+        description: Price in the currency's smallest unit (cents)
+      currency:
+        type: string
+      sku:
+        type: string
+      category:
+        type: string
+      image_url:
+        type: string
+      brand:
+        type: string
+      gtin:
+        type: string
+      mpn:
+        type: string
+      quantity:
+        type: integer
+        description: Available stock
+
+  UpdateProductRequest:
+    type: object
+    properties:
+      title:
+        type: string
+      description:
+        type: string
+      price:
+        type: integer
+      currency:
+        type: string
+      sku:
+        type: string
+      category:
+        type: string
+      image_url:
+        type: string
+      brand:
+        type: string
+      gtin:
+        type: string
+      mpn:
+        type: string
+      quantity:
+        type: integer
+
+  Product:
+    type: object
+    required:
+      - id
+      - merchant_id
+      - title
+      - price
+      - currency
+      - quantity
+      - status
+    properties:
+      id:
+        type: string
+      merchant_id:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      price:
+        type: integer
+      currency:
+        type: string
+      sku:
+        type: string
+      category:
+        type: string
+      image_url:
+        type: string
+      brand:
+        type: string
+      gtin:
+        type: string
+      mpn:
+        type: string
+      quantity:
+        type: integer
+      status:
+        type: string
+      page_url:
+        type: string
+        description: Public crawlable product page with JSON-LD
+      created_at:
+        type: string
+
+  ProductList:
+    type: object
+    additionalProperties: true
+
+  AgentManifest:
+    type: object
+    additionalProperties: true
+
+  ProductFeed:
+    type: object
+    additionalProperties: true

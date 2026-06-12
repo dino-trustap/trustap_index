@@ -1,0 +1,20 @@
+type {{.Name.Pascal}} struct {
+	{{range .Properties}}
+		{{.Name.Pascal}} {{.GoType -}}
+			`json:"{{- .Name.Snake}}{{- if not .IsRequired}},omitempty{{end -}}"
+			{{- if .SwaggerTag}} swagger:"{{.SwaggerTag}}"{{end -}}`
+	{{- end}}
+}
+
+func (out *{{.Name.Pascal}}) UnmarshalJSON(in []byte) error {
+	return rest_api_json.UnmarshalJSONObject(in, out)
+}
+
+
+
+
+
+
+
+
+

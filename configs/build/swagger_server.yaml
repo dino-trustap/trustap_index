@@ -1,0 +1,32 @@
+# `go_package` is the Go package that this server is generated to. Nested
+# services are defined relative to this package.
+go_package:
+  path: "github.com/trustap/trustap_index/target/gen/swagger_server"
+  name: "swagger_server"
+
+default_service: "core"
+
+# `endpoint_metadata` is a `struct` that defines extra metadata associated with
+# an endpoint, such as whether logging request bodies should be enabled for the
+# endpoint. This is useful as a mechanism for endpoint definitions to modify the
+# middleware process.
+endpoint_metadata:
+  import: "github.com/trustap/trustap_index/internal/middleware"
+  type: "middleware.Meta"
+
+# `context_types` defines `struct`s that are passed to endpoint handlers to
+# carry request-specific values.
+context_types:
+  import: "github.com/trustap/trustap_index/internal/middleware"
+  global: "*middleware.MiddlewareContext"
+  local:
+    core: "*middleware.Context"
+
+
+
+
+
+
+
+
+

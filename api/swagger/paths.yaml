@@ -1,0 +1,298 @@
+paths:
+  /heartbeat:
+    get:
+      operationId: getHeartbeat
+      summary: Health check endpoint
+      description: Returns 204 No Content to indicate the service is running
+      responses:
+        204:
+          description: Service is healthy
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /checkouts:
+    post:
+      operationId: createCheckout
+      summary: Create a checkout and Trustap transaction
+      description: |
+        Creates a Trustap guest buyer, calculates the charge, creates a
+        full-seller/guest-buyer transaction on behalf of the merchant, and
+        returns the actions page URL where the buyer pays.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/CreateCheckoutRequest"
+      responses:
+        201:
+          description: Checkout created
+          schema:
+            $ref: "#/definitions/Checkout"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /checkouts/{checkout_id}:
+    get:
+      operationId: getCheckout
+      summary: Get a checkout
+      description: Returns the checkout with its current payment status.
+      parameters:
+        - name: checkout_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: The checkout
+          schema:
+            $ref: "#/definitions/Checkout"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /checkouts/{checkout_id}/return:
+    get:
+      operationId: paymentReturn
+      summary: Buyer redirect target after paying on the Trustap actions page
+      description: |
+        The redirect_uri given to the Trustap actions page points here. Marks
+        the buyer as returned. Payment truth comes from webhooks, not from
+        this redirect.
+      parameters:
+        - name: checkout_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Return acknowledged
+          schema:
+            $ref: "#/definitions/PaymentReturn"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /webhooks/trustap:
+    post:
+      operationId: trustapWebhook
+      summary: Inbound Trustap webhook receiver
+      description: |
+        Receives Trustap webhook events. Protected by basic auth configured in
+        trustap.webhook_user / trustap.webhook_password (enforced in the
+        middleware chain). Events are stored raw and drive checkout status.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/TrustapWebhookEvent"
+      responses:
+        200:
+          description: Event accepted
+          schema:
+            $ref: "#/definitions/WebhookAck"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /merchants/{merchant_id}/products:
+    post:
+      operationId: createProduct
+      summary: Add a product to a merchant's Index catalog
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/CreateProductRequest"
+      responses:
+        201:
+          description: Product created
+          schema:
+            $ref: "#/definitions/Product"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+    get:
+      operationId: listProducts
+      summary: List a merchant's active products
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Active products
+          schema:
+            $ref: "#/definitions/ProductList"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /products/{product_id}:
+    get:
+      operationId: getProduct
+      summary: Get a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: The product
+          schema:
+            $ref: "#/definitions/Product"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+    put:
+      operationId: updateProduct
+      summary: Update a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateProductRequest"
+      responses:
+        200:
+          description: Updated product
+          schema:
+            $ref: "#/definitions/Product"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+    delete:
+      operationId: archiveProduct
+      summary: Archive a product (removed from feeds and pages)
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Archived product
+          schema:
+            $ref: "#/definitions/Product"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /acp/{merchant_id}/.well-known/agentic-commerce:
+    get:
+      operationId: acpManifest
+      summary: ACP capability manifest (OpenAI Agentic Commerce Protocol)
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: ACP manifest
+          schema:
+            $ref: "#/definitions/AgentManifest"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /acp/{merchant_id}/feed:
+    get:
+      operationId: acpFeed
+      summary: ACP product feed (active products)
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: ACP product feed
+          schema:
+            $ref: "#/definitions/ProductFeed"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /copilot/{merchant_id}/.well-known/copilot-checkout:
+    get:
+      operationId: copilotManifest
+      summary: Microsoft Copilot plugin manifest (runs on ACP)
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Copilot manifest
+          schema:
+            $ref: "#/definitions/AgentManifest"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /copilot/{merchant_id}/feed:
+    get:
+      operationId: copilotFeed
+      summary: Copilot product feed (active products)
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Copilot product feed
+          schema:
+            $ref: "#/definitions/ProductFeed"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /ucp/{merchant_id}/.well-known/ucp:
+    get:
+      operationId: ucpManifest
+      summary: UCP capability manifest (Google Universal Commerce Protocol)
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: UCP manifest
+          schema:
+            $ref: "#/definitions/AgentManifest"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []

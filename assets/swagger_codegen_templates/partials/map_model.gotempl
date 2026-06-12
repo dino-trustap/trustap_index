@@ -1,0 +1,10 @@
+type {{.Name.Pascal}} map[string]any
+
+
+
+
+
+
+
+
+

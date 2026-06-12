@@ -1,0 +1,68 @@
+package {{.Pkg}}
+
+import (
+	{{range $path, $alias := .Imports}}
+		{{if $alias}}{{$alias}}{{end}} "{{$path}}"
+	{{- end}}
+)
+
+func Endpoints(api Api, ctxRefiner {{.ServerPackageName}}.ContextRefiner) []*{{.ServerPackageName}}.Endpoint {
+	return []*{{.ServerPackageName}}.Endpoint{
+		{{range .Endpoints}}
+			{
+				Method: http.Method{{.Method.Pascal}},
+				Path: "{{.Path}}",
+				Meta: &{{.Meta.GoType}}{
+					{{range $key, $value := .Meta.Values -}}
+						{{$key}}: {{$value}},
+					{{end}}
+				},
+				Handle: func(
+					context {{$.GlobalContextType}},
+					w http.ResponseWriter,
+					r *http.Request,
+				) error {
+					resp, endptErr := {{.Name.Camel}}(
+						api,
+						ctxRefiner,
+						context,
+						w,
+						r,
+					)
+					// Note that we don't exit here in the case of an error; we
+					// attempt to send the response as normal (even if it's an
+					// error response) and handle the error after that.
+
+					sendRespErr := swagger_rest.SendResp(
+						w,
+						http.Status{{.SuccessResponse.Status.Pascal}},
+						resp,
+						endptErr,
+					)
+
+					if sendRespErr != nil {
+						if endptErr != nil {
+							return swagger_rest.NewHandleEndpointError("{{.Name.Pascal}}", fmt.Sprintf("couldn't send failure response (%v)", endptErr), sendRespErr)
+						}
+						return swagger_rest.NewHandleEndpointError("{{.Name.Pascal}}", "couldn't send response", sendRespErr)
+					}
+
+					if endptErr != nil {
+						return swagger_rest.NewHandleEndpointError("{{.Name.Pascal}}", "handle failed", endptErr)
+					}
+
+					return nil
+				},
+			},
+		{{end}}
+	}
+}
+
+
+
+
+
+
+
+
+

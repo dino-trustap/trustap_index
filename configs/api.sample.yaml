@@ -1,0 +1,28 @@
+logging:
+  level: "info"        # debug, info, warn, error
+  format: "json"       # json or text
+
+server:
+  read_timeout_seconds: 30
+  write_timeout_seconds: 30
+  idle_timeout_seconds: 120
+
+# Externally reachable base URL of this service; used as the redirect_uri
+# base for the Trustap actions page.
+public_base_url: "http://localhost:8080"
+
+database:
+  dsn: "host=localhost port=5433 user=postgres password=postgres dbname=trustap_index sslmode=disable"
+
+trustap:
+  environment: "test"            # test (stage) or live
+  webhook_user: "trustap"        # same pair is configured in the Trustap internal dashboard
+  webhook_password: "change-me"
+
+# Per-merchant Trustap API clients. Each merchant has its own client id /
+# API key, and a sub (Trustap user id) granted via one-time OAuth consent.
+merchants:
+  - id: "demo"
+    name: "Demo Merchant"
+    trustap_api_key: ""
+    trustap_sub: ""
