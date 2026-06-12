@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0">
+  <style>
+    @font-face {
+      font-family: "Mulish";
+      font-style: normal;
+      font-weight: 200 1000;
+      font-display: swap;
+      src: url("assets/Mulish-VariableFont_wght.ttf") format("truetype-variations");
+    }
+    :root {
+      --x-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+      --x-sans: "Mulish", system-ui, sans-serif;
+      --t-pagebg: radial-gradient(900px 420px at 28% -8%, rgba(41,73,206,0.30), transparent 65%), radial-gradient(700px 380px at 92% 4%, rgba(215,204,251,0.10), transparent 60%), #060A14;
+      --t-bodybg: #060A14;
+      --t-grid: rgba(255,255,255,0.022);
+      --t-rail: rgba(255,255,255,0.022);
+      --t-border: rgba(255,255,255,0.07);
+      --t-card: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      --t-cardbd: rgba(255,255,255,0.08);
+      --t-cardbd-h: rgba(110,139,255,0.5);
+      --t-div: rgba(255,255,255,0.06);
+      --t-head: #ffffff;
+      --t-text: #EEF2FF;
+      --t-t2: rgba(238,242,255,0.55);
+      --t-t3: rgba(238,242,255,0.45);
+      --t-t4: rgba(238,242,255,0.32);
+      --t-link: #8FA5FF;
+      --t-green: #3DE07C;
+      --t-glass: rgba(255,255,255,0.045);
+      --t-glass-h: rgba(255,255,255,0.08);
+      --t-tile-bg: rgba(110,139,255,0.12);
+      --t-tile-bd: rgba(110,139,255,0.35);
+      --t-tile-fg: #AEBEFF;
+      --t-badge-bg: rgba(110,139,255,0.15);
+      --t-chip-fg: #DCE3FF;
+      --t-seg-bg: rgba(255,255,255,0.05);
+      --t-bar-track: rgba(255,255,255,0.08);
+      --t-barglow: 0 0 10px rgba(110,139,255,0.5);
+      --t-dash: rgba(255,255,255,0.16);
+      --t-trust-bg: linear-gradient(100deg, rgba(41,73,206,0.28), rgba(110,139,255,0.10) 55%, rgba(215,204,251,0.08));
+      --t-trust-bd: rgba(110,139,255,0.4);
+      --t-btn-bg: rgba(41,73,206,0.16);
+      --t-btn-bg-h: rgba(41,73,206,0.32);
+      --t-btn-bd: rgba(110,139,255,0.45);
+      --t-btn-fg: #C9D4FF;
+      --t-shadow-sm: 0 1px 2px rgba(0,0,0,0.45), 0 10px 30px -10px rgba(0,0,0,0.55);
+      --t-glow: 0 0 0 1px rgba(110,139,255,0.25), 0 0 28px rgba(77,107,255,0.30);
+      --t-sweep: rgba(255,255,255,0.07);
+      --t-logo-dark: block;
+      --t-logo-light: none;
+      --t-index: #D7CCFB;
+    }
+    [data-theme="light"] {
+      --t-pagebg: radial-gradient(900px 420px at 28% -8%, rgba(41,73,206,0.08), transparent 65%), radial-gradient(700px 380px at 92% 4%, rgba(215,204,251,0.25), transparent 60%), #F6F8FB;
+      --t-bodybg: #F6F8FB;
+      --t-grid: rgba(6,24,38,0.04);
+      --t-rail: #ffffff;
+      --t-border: rgba(6,24,38,0.08);
+      --t-card: #ffffff;
+      --t-cardbd: rgba(6,24,38,0.08);
+      --t-cardbd-h: rgba(41,73,206,0.45);
+      --t-div: rgba(6,24,38,0.07);
+      --t-head: #061826;
+      --t-text: #1A2735;
+      --t-t2: rgba(6,24,38,0.62);
+      --t-t3: rgba(6,24,38,0.46);
+      --t-t4: rgba(6,24,38,0.34);
+      --t-link: #2949CE;
+      --t-green: #18A957;
+      --t-glass: rgba(6,24,38,0.035);
+      --t-glass-h: rgba(6,24,38,0.07);
+      --t-tile-bg: #EDE8FD;
+      --t-tile-bd: rgba(41,73,206,0.25);
+      --t-tile-fg: #2949CE;
+      --t-badge-bg: #EDE8FD;
+      --t-chip-fg: #16297E;
+      --t-seg-bg: rgba(6,24,38,0.05);
+      --t-bar-track: rgba(6,24,38,0.08);
+      --t-barglow: none;
+      --t-dash: rgba(6,24,38,0.18);
+      --t-trust-bg: linear-gradient(100deg, rgba(41,73,206,0.09), rgba(110,139,255,0.05) 55%, rgba(215,204,251,0.20));
+      --t-trust-bd: rgba(41,73,206,0.35);
+      --t-btn-bg: #ffffff;
+      --t-btn-bg-h: rgba(41,73,206,0.08);
+      --t-btn-bd: rgba(41,73,206,0.4);
+      --t-btn-fg: #2949CE;
+      --t-shadow-sm: 0 1px 2px rgba(6,24,38,0.05), 0 8px 24px -6px rgba(6,24,38,0.08);
+      --t-glow: 0 0 0 1px rgba(41,73,206,0.22), 0 12px 30px -8px rgba(41,73,206,0.28);
+      --t-sweep: rgba(41,73,206,0.05);
+      --t-logo-dark: none;
+      --t-logo-light: block;
+      --t-index: #2949CE;
+    }
+    html, body { margin: 0; padding: 0; background: var(--t-bodybg); }
+    ::selection { background: rgba(110,139,255,0.45); color: #fff; }
+    .material-symbols-outlined {
+      font-variation-settings: 'opsz' 20, 'wght' 400, 'FILL' 0, 'GRAD' 0;
+      vertical-align: middle;
+      user-select: none;
+    }
+    @keyframes xPulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(61, 224, 124, 0.5); }
+      70% { box-shadow: 0 0 0 7px rgba(61, 224, 124, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(61, 224, 124, 0); }
+    }
+    @keyframes xPulseBlue {
+      0% { box-shadow: 0 0 0 0 rgba(110, 139, 255, 0.5); }
+      70% { box-shadow: 0 0 0 9px rgba(110, 139, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(110, 139, 255, 0); }
+    }
+    image-slot[id="merchant-logo"] { width: 44px; height: 44px; display: block; }
+    @keyframes xSweep {
+      0% { left: -25%; }
+      100% { left: 115%; }
+    }
+  </style>
+</helmet>
+
+<div style="display: flex; min-height: 100vh; background: var(--t-pagebg); font-family: var(--x-sans); color: var(--t-text); transition: background-color 250ms ease;">
+
+  <aside data-screen-label="Nav rail" style="width: 252px; flex-shrink: 0; background: var(--t-rail); border-right: 1px solid var(--t-border); backdrop-filter: blur(20px); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; box-sizing: border-box;">
+    <div style="padding: 28px 24px 22px;">
+      <img src="assets/trustap-logo-white.png" alt="Trustap" style="height: 24px; display: var(--t-logo-dark);">
+      <img src="assets/trustap-logo-colour.png" alt="Trustap" style="height: 24px; display: var(--t-logo-light);">
+      <div style="font-family: var(--x-mono); font-size: 10px; font-weight: 600; letter-spacing: 7px; color: var(--t-index); margin-top: 9px;">INDEX</div>
+    </div>
+
+    <div style="padding: 0 16px 18px;">
+      <button style="display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 9px 12px; cursor: pointer; text-align: left; transition: border-color 180ms ease, background-color 180ms ease;" style-hover="background: var(--t-glass-h); border-color: var(--t-tile-bd);">
+        <span style="width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, #2949CE, #6E8BFF); color: #ffffff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">D</span>
+        <span style="flex: 1; min-width: 0; font-weight: 700; font-size: 13.5px; color: var(--t-head); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Demo Merchant</span>
+        <span class="material-symbols-outlined" style="font-size: 17px; color: var(--t-t4);">unfold_more</span>
+      </button>
+    </div>
+
+    <nav style="padding: 0 12px; display: flex; flex-direction: column; gap: 3px;">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+        <button onClick="{{ n.onSelect }}" style="display: flex; align-items: center; gap: 12px; padding: 10px 13px; border: none; border-radius: 10px; cursor: pointer; text-align: left; background: {{ n.bg }}; color: {{ n.fg }}; box-shadow: {{ n.glow }}; font-family: var(--x-sans); font-size: 14px; font-weight: {{ n.weight }}; transition: background-color 180ms ease;" style-hover="background: {{ n.hoverBg }};">
+          <span class="material-symbols-outlined" style="font-size: 20px; color: {{ n.iconFg }};">{{ n.icon }}</span>
+          <span>{{ n.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="flex: 1;"></div>
+
+    <div style="padding: 0 24px 16px; display: flex; align-items: center; gap: 9px;">
+      <span style="width: 7px; height: 7px; border-radius: 999px; background: var(--t-green); animation: xPulseGreen 2.4s ease infinite;"></span>
+      <span style="font-family: var(--x-mono); font-size: 10px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3);">ALL SYSTEMS OPERATIONAL</span>
+    </div>
+
+    <div style="border-top: 1px solid var(--t-border); padding: 14px 16px 18px; display: flex; align-items: center; gap: 11px;">
+      <span style="width: 34px; height: 34px; border-radius: 999px; background: linear-gradient(135deg, #2949CE, #6E8BFF); color: #ffffff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">DZ</span>
+      <span style="flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--t-head); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Dino Zorovic</span>
+      <button title="Log out" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: 9px; background: transparent; cursor: pointer; transition: background-color 180ms ease;" style-hover="background: var(--t-glass-h);">
+        <span class="material-symbols-outlined" style="font-size: 19px; color: var(--t-t3);">logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <main style="flex: 1; min-width: 0; background-image: linear-gradient(var(--t-grid) 1px, transparent 1px), linear-gradient(90deg, var(--t-grid) 1px, transparent 1px); background-size: 52px 52px;">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 36px 44px 60px; box-sizing: border-box;">
+
+      <header data-screen-label="Header" style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 28px;">
+        <div style="flex: 1; min-width: 0;">
+          <h1 style="font-weight: 800; font-size: 30px; line-height: 1.15; letter-spacing: -0.4px; color: var(--t-head); margin: 0;">{{ pageTitle }}</h1>
+          <p style="font-size: 14.5px; line-height: 1.5; color: var(--t-t2); margin: 7px 0 0;">{{ pageSub }}</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 13px; padding-top: 4px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 999px; padding: 8px 15px; backdrop-filter: blur(12px);">
+            <span class="material-symbols-outlined" style="font-size: 15px; color: var(--t-link);">verified_user</span>
+            <span style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 1.2px; color: var(--t-chip-fg);">SECURE SESSION</span>
+            <span style="width: 1px; height: 12px; background: var(--t-div);"></span>
+            <span style="font-family: var(--x-mono); font-size: 10.5px; letter-spacing: 1.2px; color: var(--t-t4);">TLS 1.3</span>
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 8px;">
+            <span style="width: 7px; height: 7px; border-radius: 999px; background: var(--t-green); animation: xPulseGreen 2.4s ease infinite;"></span>
+            <span style="font-family: var(--x-mono); font-size: 11px; letter-spacing: 1.2px; color: var(--t-t3);">UPDATED JUST NOW</span>
+          </span>
+          <button onClick="{{ toggleTheme }}" title="{{ themeTitle }}" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--t-border); background: var(--t-glass); border-radius: 10px; cursor: pointer; backdrop-filter: blur(12px); transition: border-color 180ms ease, box-shadow 180ms ease;" style-hover="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--t-link);">{{ themeIcon }}</span>
+          </button>
+          <button onClick="{{ refresh }}" style="display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--t-btn-bd); background: var(--t-btn-bg); color: var(--t-btn-fg); border-radius: 10px; padding: 9px 16px; cursor: pointer; font-family: var(--x-mono); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; transition: background-color 180ms ease, box-shadow 180ms ease;" style-hover="background: var(--t-btn-bg-h); box-shadow: var(--t-glow);">
+            <span class="material-symbols-outlined" style="font-size: 15px; color: var(--t-btn-fg);">refresh</span>
+            <span>REFRESH</span>
+          </button>
+        </div>
+      </header>
+
+      <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+
+        <section data-screen-label="Trust layer" style="position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; background: var(--t-trust-bg); border: 1px solid var(--t-trust-bd); border-radius: 16px; padding: 15px 22px; margin-bottom: 24px; backdrop-filter: blur(16px);">
+          <span style="position: absolute; top: 0; bottom: 0; width: 140px; background: linear-gradient(105deg, transparent, var(--t-sweep), transparent); animation: xSweep 5s linear infinite; pointer-events: none;"></span>
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #2949CE, #6E8BFF); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 24px rgba(77,107,255,0.5);">
+            <span class="material-symbols-outlined" style="font-size: 21px; color: #ffffff; font-variation-settings: 'FILL' 1, 'opsz' 24, 'wght' 400, 'GRAD' 0;">verified_user</span>
+          </span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 800; font-size: 15px; color: var(--t-head);">Trust layer active</div>
+            <div style="font-size: 13px; line-height: 1.45; color: var(--t-t2); margin-top: 2px;">Every agent checkout settles through Trustap escrow — funds are held until both sides confirm.</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 20px; flex-shrink: 0;">
+            <sc-for list="{{ trustFacts }}" as="t" hint-placeholder-count="3">
+              <span style="display: inline-flex; align-items: center; gap: 7px;">
+                <span class="material-symbols-outlined" style="font-size: 15px; color: var(--t-green);">check_circle</span>
+                <span style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 1.1px; color: var(--t-chip-fg);">{{ t.label }}</span>
+              </span>
+            </sc-for>
+          </div>
+        </section>
+
+        <section data-screen-label="KPIs" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 24px;">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+            <div style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; padding: 20px 22px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); transition: border-color 200ms ease, box-shadow 200ms ease;" style-hover="border-color: var(--t-cardbd-h); box-shadow: var(--t-glow);">
+              <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3);">{{ k.label }}</div>
+              <div style="margin-top: 13px; display: flex; align-items: baseline; gap: 7px;">
+                <span style="font-weight: 800; font-size: 38px; line-height: 1; letter-spacing: -0.5px; color: {{ k.color }};">{{ k.value }}</span>
+                <span style="font-family: var(--x-mono); font-size: 13px; font-weight: 600; color: {{ k.color }};">{{ k.suffix }}</span>
+              </div>
+              <div style="font-size: 12.5px; color: var(--t-t3); margin-top: 11px;">{{ k.caption }}</div>
+            </div>
+          </sc-for>
+        </section>
+
+        <section data-screen-label="Agent fetches chart" style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); padding: 22px 24px 18px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 800; font-size: 17px; color: var(--t-head);">{{ chartTitle }}</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px;">
+                <span class="material-symbols-outlined" style="font-size: 13px; color: var(--t-t4);">key</span>
+                <span style="font-family: var(--x-mono); font-size: 9.5px; letter-spacing: 1.6px; color: var(--t-t4);">ALL REQUESTS SIGNATURE-VERIFIED</span>
+              </div>
+            </div>
+            <div style="display: inline-flex; background: var(--t-seg-bg); border: 1px solid var(--t-border); border-radius: 11px; padding: 3px; gap: 2px;">
+              <button onClick="{{ set24 }}" style="border: none; cursor: pointer; border-radius: 8px; padding: 7px 14px; font-family: var(--x-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.8px; background: {{ m24Bg }}; color: {{ m24Fg }}; box-shadow: {{ m24Sh }}; transition: background-color 180ms ease;">24H FETCHES</button>
+              <button onClick="{{ set7 }}" style="border: none; cursor: pointer; border-radius: 8px; padding: 7px 14px; font-family: var(--x-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.8px; background: {{ m7Bg }}; color: {{ m7Fg }}; box-shadow: {{ m7Sh }}; transition: background-color 180ms ease;">7D REVENUE</button>
+            </div>
+          </div>
+          {{ chartEl }}
+        </section>
+
+        <section data-screen-label="Activity and attention" style="display: grid; grid-template-columns: 1.45fr 1fr; gap: 18px;">
+          <div style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); padding: 22px 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <div style="flex: 1; font-weight: 800; font-size: 17px; color: var(--t-head);">Agent activity</div>
+              <button onClick="{{ goReach }}" style="border: none; background: transparent; cursor: pointer; font-family: var(--x-sans); font-size: 13px; font-weight: 700; color: var(--t-link); padding: 4px 8px; border-radius: 7px; transition: background-color 180ms ease;" style-hover="background: var(--t-badge-bg);">View surfaces</button>
+            </div>
+            <sc-for list="{{ activity }}" as="a" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 10px 132px 1fr 120px; gap: 14px; align-items: center; padding: 13px 0; border-bottom: {{ a.border }};">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: var(--t-green); animation: xPulseGreen 2.4s ease infinite;"></span>
+                <span style="font-size: 14.5px; font-weight: 700; color: var(--t-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ a.name }}</span>
+                <span style="display: block; height: 4px; border-radius: 999px; background: var(--t-bar-track); overflow: hidden;">
+                  <span style="display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2949CE, #7C95FF); box-shadow: var(--t-barglow); width: {{ a.pctW }};"></span>
+                </span>
+                <span style="font-family: var(--x-mono); font-size: 11.5px; color: var(--t-t3); text-align: right; white-space: nowrap;">{{ a.count }} · {{ a.ago }} ago</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); padding: 22px 24px; display: flex; flex-direction: column;">
+            <div style="font-weight: 800; font-size: 17px; color: var(--t-head);">Needs attention</div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 26px 12px;">
+              <span style="width: 46px; height: 46px; border-radius: 999px; background: rgba(61,224,124,0.12); border: 1px solid rgba(61,224,124,0.35); display: inline-flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 24px; color: var(--t-green); font-variation-settings: 'FILL' 1, 'opsz' 24, 'wght' 400, 'GRAD' 0;">verified</span>
+              </span>
+              <div style="font-weight: 800; font-size: 15px; color: var(--t-head);">All clear</div>
+              <div style="font-size: 13px; line-height: 1.5; color: var(--t-t2); max-width: 240px;">Every product is fully listed. Nothing to fix.</div>
+              <div style="font-family: var(--x-mono); font-size: 10px; letter-spacing: 1.6px; color: var(--t-t4); margin-top: 4px;">3/3 PRODUCTS AGENT-READY</div>
+            </div>
+          </div>
+        </section>
+
+      </sc-if>
+
+      <sc-if value="{{ isReach }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Agent reach" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start;">
+          <sc-for list="{{ reachAgents }}" as="g" hint-placeholder-count="4">
+            <div style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); overflow: hidden; transition: border-color 200ms ease, box-shadow 200ms ease;" style-hover="border-color: var(--t-cardbd-h); box-shadow: var(--t-glow);">
+              <div style="display: flex; align-items: center; gap: 13px; padding: 17px 20px; border-bottom: 1px solid var(--t-div);">
+                <span style="width: 40px; height: 40px; border-radius: 11px; background: var(--t-tile-bg); border: 1px solid var(--t-tile-bd); color: var(--t-tile-fg); display: inline-flex; align-items: center; justify-content: center; font-family: var(--x-mono); font-weight: 700; font-size: 12.5px; flex-shrink: 0;">{{ g.mono }}</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 800; font-size: 16px; color: var(--t-head);">{{ g.name }}</div>
+                  <div style="font-size: 12.5px; color: var(--t-t3); margin-top: 1px;">{{ g.provider }}</div>
+                </div>
+                <span style="display: inline-flex; align-items: center; gap: 7px;">
+                  <span style="width: 8px; height: 8px; border-radius: 999px; background: var(--t-green); animation: xPulseGreen 2.4s ease infinite;"></span>
+                  <span style="font-size: 13px; font-weight: 700; color: var(--t-text);">Active</span>
+                </span>
+              </div>
+              <div style="padding: 18px 20px 8px;">
+                {{ g.chartEl }}
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 0 13px; border-bottom: 1px solid var(--t-div);">
+                  <span style="font-family: var(--x-mono); font-size: 12px; color: var(--t-t3);"><b style="color: var(--t-head); font-weight: 700;">{{ g.fetches }}</b> fetches · 24h</span>
+                  <span style="font-family: var(--x-mono); font-size: 12px; color: var(--t-t3);">last {{ g.last }}</span>
+                </div>
+                <sc-for list="{{ g.surfaces }}" as="s" hint-placeholder-count="2">
+                  <div style="display: flex; align-items: center; gap: 9px; padding: 10px 0; border-bottom: {{ s.border }};">
+                    <span style="flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--t-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.name }}</span>
+                    <span style="font-family: var(--x-mono); font-size: 11.5px; color: {{ s.agoColor }}; white-space: nowrap;">{{ s.ago }}</span>
+                    <button title="Open surface" style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex-shrink: 0; border: 1px solid var(--t-border); border-radius: 9px; background: var(--t-glass); cursor: pointer; transition: border-color 180ms ease, background-color 180ms ease;" style-hover="border-color: var(--t-btn-bd); background: var(--t-badge-bg);">
+                      <span class="material-symbols-outlined" style="font-size: 15px; color: var(--t-tile-fg);">open_in_new</span>
+                    </button>
+                    <button onClick="{{ s.onCopy }}" title="Copy URL" style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex-shrink: 0; border: 1px solid var(--t-border); border-radius: 9px; background: var(--t-glass); cursor: pointer; transition: border-color 180ms ease, background-color 180ms ease;" style-hover="border-color: var(--t-btn-bd); background: var(--t-badge-bg);">
+                      <span class="material-symbols-outlined" style="font-size: 15px; color: var(--t-tile-fg);">content_copy</span>
+                    </button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isConnections }}" hint-placeholder-val="{{ true }}">
+        <section data-screen-label="Connection status" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 24px;">
+          <sc-for list="{{ connStatus }}" as="c" hint-placeholder-count="3">
+            <div style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); display: flex; flex-direction: column; transition: border-color 200ms ease, box-shadow 200ms ease;" style-hover="border-color: var(--t-cardbd-h); box-shadow: var(--t-glow);">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 17px 22px; border-bottom: 1px solid var(--t-div);">
+                <span style="flex: 1; font-weight: 800; font-size: 15.5px; color: var(--t-head);">{{ c.title }}</span>
+                <span style="display: inline-flex; align-items: center; gap: 7px;">
+                  <span style="width: 8px; height: 8px; border-radius: 999px; background: {{ c.dotBg }}; animation: {{ c.dotAnim }};"></span>
+                  <span style="font-size: 13px; font-weight: 700; color: var(--t-text);">{{ c.status }}</span>
+                </span>
+              </div>
+              <div style="flex: 1; padding: 18px 22px; font-size: 14px; line-height: 1.55; color: var(--t-t2);">{{ c.body }}</div>
+              <div style="border-top: 1px solid var(--t-div); padding: 13px 22px; font-family: var(--x-mono); font-size: 11px; line-height: 1.6; letter-spacing: 0.3px; color: var(--t-t4);">{{ c.foot }}</div>
+            </div>
+          </sc-for>
+        </section>
+
+        <section data-screen-label="Store platforms" style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); margin-bottom: 24px;">
+          <div style="display: flex; align-items: baseline; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--t-div);">
+            <span style="flex: 1; font-weight: 800; font-size: 17px; color: var(--t-head);">Store platforms</span>
+            <span style="font-size: 13px; color: var(--t-t3);">Connect your store to import the catalog and keep inventory in sync</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 28px; padding: 12px 24px 16px;">
+            <sc-for list="{{ connPlatforms }}" as="i" hint-placeholder-count="4">
+              <div style="display: flex; align-items: center; gap: 13px; padding: 12px 0;">
+                <span style="width: 42px; height: 42px; border-radius: 11px; background: {{ i.tileBg }}; color: {{ i.tileFg }}; display: inline-flex; align-items: center; justify-content: center; font-family: var(--x-mono); font-weight: 700; font-size: 12px; flex-shrink: 0; box-shadow: var(--t-shadow-sm);">{{ i.mono }}</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-weight: 800; font-size: 14.5px; color: var(--t-head); white-space: nowrap;">{{ i.name }}</span>
+                    <span style="display: {{ i.badgeDisplay }}; align-items: center; background: var(--t-badge-bg); border-radius: 999px; padding: 2px 9px; font-family: var(--x-mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.8px; color: var(--t-link); white-space: nowrap;">{{ i.badge }}</span>
+                  </div>
+                  <div style="font-size: 12.5px; color: var(--t-t3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ i.sub }}</div>
+                </div>
+                <button style="border: 1px solid var(--t-btn-bd); background: transparent; color: var(--t-link); border-radius: 9px; padding: 7px 15px; cursor: pointer; font-family: var(--x-sans); font-size: 13px; font-weight: 700; flex-shrink: 0; transition: background-color 180ms ease, box-shadow 180ms ease;" style-hover="background: var(--t-btn-bg-h); box-shadow: var(--t-glow);">Connect</button>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section data-screen-label="Shipping providers" style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px);">
+          <div style="display: flex; align-items: baseline; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--t-div);">
+            <span style="flex: 1; font-weight: 800; font-size: 17px; color: var(--t-head);">Shipping providers</span>
+            <span style="font-size: 13px; color: var(--t-t3);">Offer carrier rates and tracking on Index orders</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 28px; padding: 12px 24px 16px;">
+            <sc-for list="{{ connShipping }}" as="i" hint-placeholder-count="8">
+              <div style="display: flex; align-items: center; gap: 13px; padding: 12px 0;">
+                <span style="width: 42px; height: 42px; border-radius: 11px; background: {{ i.tileBg }}; color: {{ i.tileFg }}; display: inline-flex; align-items: center; justify-content: center; font-family: var(--x-mono); font-weight: 700; font-size: 12px; flex-shrink: 0; box-shadow: var(--t-shadow-sm);">{{ i.mono }}</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-weight: 800; font-size: 14.5px; color: var(--t-head); white-space: nowrap;">{{ i.name }}</span>
+                    <span style="display: {{ i.badgeDisplay }}; align-items: center; background: var(--t-badge-bg); border-radius: 999px; padding: 2px 9px; font-family: var(--x-mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.8px; color: var(--t-link); white-space: nowrap;">{{ i.badge }}</span>
+                  </div>
+                  <div style="font-size: 12.5px; color: var(--t-t3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ i.sub }}</div>
+                </div>
+                <button style="border: 1px solid var(--t-btn-bd); background: transparent; color: var(--t-link); border-radius: 9px; padding: 7px 15px; cursor: pointer; font-family: var(--x-sans); font-size: 13px; font-weight: 700; flex-shrink: 0; transition: background-color 180ms ease, box-shadow 180ms ease;" style-hover="background: var(--t-btn-bg-h); box-shadow: var(--t-glow);">Connect</button>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Catalog toolbar" style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px;">
+          <span style="font-weight: 800; font-size: 15px; color: var(--t-head); white-space: nowrap;">{{ readyLabel }}</span>
+          <span style="flex: 1; height: 6px; border-radius: 999px; background: var(--t-bar-track); overflow: hidden;">
+            <span style="display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2949CE, #7C95FF); box-shadow: var(--t-barglow); width: {{ readyW }};"></span>
+          </span>
+          <span style="position: relative; width: 240px; flex-shrink: 0;">
+            <span class="material-symbols-outlined" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--t-t4);">search</span>
+            <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Search products…" style="width: 100%; box-sizing: border-box; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 10px 12px 10px 36px; color: var(--t-text); font-family: var(--x-sans); font-size: 13.5px; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);">
+          </span>
+          <button style="border: 1px solid var(--t-btn-bd); background: transparent; color: var(--t-link); border-radius: 10px; padding: 10px 16px; cursor: pointer; font-family: var(--x-sans); font-size: 13.5px; font-weight: 700; flex-shrink: 0; transition: background-color 180ms ease, box-shadow 180ms ease;" style-hover="background: var(--t-btn-bg-h); box-shadow: var(--t-glow);">Sync to store</button>
+          <button onClick="{{ addProduct }}" style="border: none; background: linear-gradient(135deg, #2949CE, #4D6BFF); color: #ffffff; border-radius: 10px; padding: 11px 18px; cursor: pointer; font-family: var(--x-sans); font-size: 13.5px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 14px rgba(41,73,206,0.5); transition: box-shadow 180ms ease;" style-hover="box-shadow: var(--t-glow);">Add product</button>
+        </section>
+
+        <section data-screen-label="Catalog table" style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); overflow: hidden;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1.4fr) 120px 70px 170px 150px 32px; gap: 16px; align-items: center; padding: 14px 22px;">
+            <span style="font-family: var(--x-mono); font-size: 10.5px; letter-spacing: 1.6px; color: var(--t-t4);">PRODUCT</span>
+            <span style="font-family: var(--x-mono); font-size: 10.5px; letter-spacing: 1.6px; color: var(--t-t4); text-align: right;">PRICE</span>
+            <span style="font-family: var(--x-mono); font-size: 10.5px; letter-spacing: 1.6px; color: var(--t-t4); text-align: right;">STOCK</span>
+            <span style="font-family: var(--x-mono); font-size: 10.5px; letter-spacing: 1.6px; color: var(--t-t4);">AGENT READINESS</span>
+            <span style="font-family: var(--x-mono); font-size: 10.5px; letter-spacing: 1.6px; color: var(--t-t4);">NEEDS ATTENTION</span>
+            <span></span>
+          </div>
+          <sc-for list="{{ catProducts }}" as="p" hint-placeholder-count="3">
+            <div style="border-top: 1px solid var(--t-div);">
+              <div onClick="{{ p.onToggle }}" style="display: grid; grid-template-columns: minmax(0, 1.4fr) 120px 70px 170px 150px 32px; gap: 16px; align-items: center; padding: 15px 22px; cursor: pointer; background: {{ p.rowBg }}; transition: background-color 150ms ease;" style-hover="background: var(--t-glass-h);">
+                <span style="font-weight: 800; font-size: 14.5px; color: var(--t-head); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.name }}</span>
+                <span style="font-family: var(--x-mono); font-size: 12.5px; color: var(--t-t2); text-align: right; white-space: nowrap;">{{ p.priceLabel }}</span>
+                <span style="font-family: var(--x-mono); font-size: 12.5px; color: var(--t-t2); text-align: right;">{{ p.stockLabel }}</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <sc-for list="{{ p.dots }}" as="d" hint-placeholder-count="4">
+                    <span style="width: 8px; height: 8px; border-radius: 2px; background: {{ d.bg }};"></span>
+                  </sc-for>
+                  <span style="font-family: var(--x-mono); font-size: 11.5px; color: var(--t-t3); margin-left: 6px;">{{ p.frac }}</span>
+                </span>
+                <span style="display: flex; align-items: center; gap: 7px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: {{ p.attFg }};">{{ p.attIcon }}</span>
+                  <span style="font-size: 13.5px; font-weight: 700; color: {{ p.attFg }};">{{ p.attLabel }}</span>
+                </span>
+                <span class="material-symbols-outlined" style="font-size: 20px; color: var(--t-t4);">{{ p.chev }}</span>
+              </div>
+              <div style="display: {{ p.edDisplay }}; padding: 18px 22px 22px; border-top: 1px dashed var(--t-dash);">
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 24px;">
+                  <sc-for list="{{ p.mainFields }}" as="f" hint-placeholder-count="6">
+                    <div style="min-width: 0;">
+                      <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin-bottom: 8px;">{{ f.l }}</div>
+                      <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" style="width: 100%; box-sizing: border-box; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 11px 14px; color: var(--t-text); font-family: var(--x-sans); font-size: 14px; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);">
+                      <div style="font-size: 12px; line-height: 1.5; color: var(--t-t3); margin-top: 6px;">{{ f.h }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="margin-top: 18px;">
+                  <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin-bottom: 8px;">DESCRIPTION</div>
+                  <textarea value="{{ p.desc }}" onChange="{{ p.onDesc }}" style="width: 100%; box-sizing: border-box; min-height: 84px; resize: vertical; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 11px 14px; color: var(--t-text); font-family: var(--x-sans); font-size: 14px; line-height: 1.5; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);"></textarea>
+                  <div style="font-size: 12px; color: var(--t-t3); margin-top: 6px;">Agents rank products by description quality.</div>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 12px; margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--t-dash); margin-bottom: 14px;">
+                  <span style="font-family: var(--x-mono); font-size: 11px; font-weight: 600; letter-spacing: 1.8px; color: var(--t-t3);">RICH LISTING DATA</span>
+                  <span style="font-family: var(--x-mono); font-size: 11px; letter-spacing: 0.5px; color: var(--t-t4);">improves ranking and unlocks category requirements (e.g. apparel needs color/size)</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 24px;">
+                  <sc-for list="{{ p.richFields }}" as="f" hint-placeholder-count="9">
+                    <div style="min-width: 0;">
+                      <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin-bottom: 8px;">{{ f.l }}</div>
+                      <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" style="width: 100%; box-sizing: border-box; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 11px 14px; color: var(--t-text); font-family: var(--x-sans); font-size: 14px; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);">
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px;">
+                  <button onClick="{{ p.onCancel }}" style="border: 1px solid var(--t-border); background: transparent; color: var(--t-t2); border-radius: 10px; padding: 10px 18px; cursor: pointer; font-family: var(--x-sans); font-size: 13.5px; font-weight: 700; transition: background-color 180ms ease;" style-hover="background: var(--t-glass-h);">Cancel</button>
+                  <button onClick="{{ p.onSave }}" style="border: none; background: linear-gradient(135deg, #2949CE, #4D6BFF); color: #ffffff; border-radius: 10px; padding: 11px 18px; cursor: pointer; font-family: var(--x-sans); font-size: 13.5px; font-weight: 700; box-shadow: 0 2px 14px rgba(41,73,206,0.5); transition: box-shadow 180ms ease;" style-hover="box-shadow: var(--t-glow);">Save product</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display: {{ emptyDisplay }}; padding: 32px 22px; border-top: 1px solid var(--t-div); text-align: center; font-size: 13.5px; color: var(--t-t3);">No products match your search.</div>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isCheckout }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Checkout studio" style="display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; align-items: start;">
+
+          <div style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); backdrop-filter: blur(16px); padding: 22px;">
+            <div style="font-weight: 800; font-size: 16px; color: var(--t-head); margin-bottom: 18px;">Customise checkout</div>
+
+            <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin-bottom: 8px;">MERCHANT NAME</div>
+            <input value="{{ ckName }}" onChange="{{ onCkName }}" style="width: 100%; box-sizing: border-box; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 11px 14px; color: var(--t-text); font-family: var(--x-sans); font-size: 14px; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);">
+
+            <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin: 20px 0 10px;">ACCENT COLOUR</div>
+            <div style="display: flex; gap: 10px;">
+              <sc-for list="{{ ckSwatches }}" as="c" hint-placeholder-count="5">
+                <button onClick="{{ c.onPick }}" style="width: 30px; height: 30px; border-radius: 999px; background: {{ c.bg }}; border: 2px solid {{ c.ring }}; cursor: pointer; padding: 0; transition: border-color 150ms ease;"></button>
+              </sc-for>
+            </div>
+
+            <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin: 20px 0 8px;">PAY BUTTON TEXT</div>
+            <input value="{{ ckBtnText }}" onChange="{{ onCkBtn }}" style="width: 100%; box-sizing: border-box; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 11px 14px; color: var(--t-text); font-family: var(--x-sans); font-size: 14px; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);">
+
+            <div style="font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3); margin: 20px 0 8px;">BUYER MESSAGE</div>
+            <textarea value="{{ ckMsg }}" onChange="{{ onCkMsg }}" style="width: 100%; box-sizing: border-box; min-height: 70px; resize: vertical; background: var(--t-glass); border: 1px solid var(--t-border); border-radius: 10px; padding: 11px 14px; color: var(--t-text); font-family: var(--x-sans); font-size: 13.5px; line-height: 1.5; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease;" style-focus="border-color: var(--t-btn-bd); box-shadow: var(--t-glow);"></textarea>
+
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 20px;">
+              <span style="flex: 1; font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3);">ESCROW BADGE</span>
+              <button onClick="{{ onCkBadge }}" style="position: relative; width: 40px; height: 22px; border-radius: 999px; border: none; cursor: pointer; background: {{ ckTogBg }}; transition: background-color 180ms ease; padding: 0;">
+                <span style="position: absolute; top: 3px; left: {{ ckKnobX }}; width: 16px; height: 16px; border-radius: 999px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.35); transition: left 180ms cubic-bezier(0.4,0,0.2,1);"></span>
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 18px;">
+              <span style="flex: 1; font-family: var(--x-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 1.8px; color: var(--t-t3);">LEFT PANEL</span>
+              <span style="display: inline-flex; background: var(--t-seg-bg); border: 1px solid var(--t-border); border-radius: 9px; padding: 2px; gap: 2px;">
+                <button onClick="{{ onPaneA }}" style="border: none; cursor: pointer; border-radius: 7px; padding: 5px 11px; font-family: var(--x-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; background: {{ pABg }}; color: {{ pAFg }}; box-shadow: {{ pASh }};">TINTED</button>
+                <button onClick="{{ onPaneW }}" style="border: none; cursor: pointer; border-radius: 7px; padding: 5px 11px; font-family: var(--x-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; background: {{ pWBg }}; color: {{ pWFg }}; box-shadow: {{ pWSh }};">WHITE</button>
+              </span>
+            </div>
+
+            <div style="display: flex; gap: 9px; margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--t-dash);">
+              <span class="material-symbols-outlined" style="font-size: 16px; color: var(--t-link); flex-shrink: 0;">image</span>
+              <span style="font-size: 12.5px; line-height: 1.55; color: var(--t-t3);">Drop your logo onto the circle in the preview — it persists with the design.</span>
+            </div>
+          </div>
+
+          <x-import component="ChromeWindow" from="./browser-window.jsx" width="100%" height="auto" url="checkout.trustap.com/pay/TX-1029" tabs="{{ ckTabs }}" hint-size="100%,640px">
+            <div style="display: grid; grid-template-columns: 1fr 1.1fr; background: #ffffff; min-height: 600px; font-family: var(--x-sans); text-align: left;">
+
+              <div style="background: {{ ckPaneBg }}; padding: 36px 40px; display: flex; flex-direction: column; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 13px;">
+                  <span class="material-symbols-outlined" style="font-size: 18px; color: rgba(6,24,38,0.4);">arrow_back</span>
+                  <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="merchant-logo" shape="circle" placeholder="Logo" fit="cover" style="width: 44px; height: 44px; flex-shrink: 0;" hint-size="44px,44px"></x-import>
+                  <span style="font-weight: 700; font-size: 15px; color: #061826;">{{ ckName }}</span>
+                </div>
+                <div style="margin-top: 38px; font-size: 14.5px; color: rgba(6,24,38,0.6);">Mechanical Keyboard</div>
+                <div style="font-weight: 800; font-size: 38px; letter-spacing: -0.5px; color: #061826; margin-top: 6px;">€129.00</div>
+                <div style="font-size: 13.5px; line-height: 1.55; color: rgba(6,24,38,0.6); margin-top: 14px; max-width: 300px;">{{ ckMsg }}</div>
+                <div style="display: {{ ckBadgeDisplay }}; align-items: flex-start; gap: 9px; margin-top: 22px; background: rgba(255,255,255,0.8); border: 1px solid {{ ckAccentSoft }}; border-radius: 10px; padding: 11px 14px; max-width: 300px; box-sizing: border-box;">
+                  <span class="material-symbols-outlined" style="font-size: 17px; color: {{ ckAccent }}; font-variation-settings: 'FILL' 1, 'opsz' 24, 'wght' 400, 'GRAD' 0;">verified_user</span>
+                  <span style="font-size: 12.5px; line-height: 1.5; color: #061826;">Funds are held in escrow by Trustap until you confirm delivery.</span>
+                </div>
+                <div style="flex: 1;"></div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 40px;">
+                  <span style="font-family: var(--x-mono); font-size: 9.5px; letter-spacing: 1.5px; color: rgba(6,24,38,0.45);">POWERED BY</span>
+                  <img src="assets/trustap-logo-colour.png" alt="Trustap" style="height: 15px;">
+                  <span style="font-family: var(--x-mono); font-size: 8.5px; font-weight: 600; letter-spacing: 3px; color: #2949CE;">INDEX</span>
+                </div>
+              </div>
+
+              <div style="padding: 36px 40px; border-left: 1px solid rgba(6,24,38,0.07); box-sizing: border-box;">
+                <div style="font-size: 12.5px; font-weight: 700; color: rgba(6,24,38,0.7); margin-bottom: 6px;">Email</div>
+                <input placeholder="buyer@example.com" style="width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid rgba(6,24,38,0.16); border-radius: 8px; padding: 10px 12px; font-family: var(--x-sans); font-size: 14px; color: #061826; outline: none; transition: border-color 150ms ease;" style-focus="border-color: {{ ckAccent }};">
+
+                <div style="font-size: 12.5px; font-weight: 700; color: rgba(6,24,38,0.7); margin: 18px 0 6px;">Card information</div>
+                <div style="border: 1px solid rgba(6,24,38,0.16); border-radius: 8px; overflow: hidden; background: #ffffff;">
+                  <div style="display: flex; align-items: center; border-bottom: 1px solid rgba(6,24,38,0.12);">
+                    <input placeholder="1234 1234 1234 1234" style="flex: 1; min-width: 0; border: none; padding: 10px 12px; font-family: var(--x-sans); font-size: 14px; color: #061826; outline: none; background: transparent;">
+                    <span class="material-symbols-outlined" style="font-size: 18px; color: rgba(6,24,38,0.35); padding-right: 12px;">credit_card</span>
+                  </div>
+                  <div style="display: flex;">
+                    <input placeholder="MM / YY" style="flex: 1; min-width: 0; border: none; border-right: 1px solid rgba(6,24,38,0.12); padding: 10px 12px; font-family: var(--x-sans); font-size: 14px; color: #061826; outline: none; background: transparent;">
+                    <input placeholder="CVC" style="flex: 1; min-width: 0; border: none; padding: 10px 12px; font-family: var(--x-sans); font-size: 14px; color: #061826; outline: none; background: transparent;">
+                  </div>
+                </div>
+
+                <div style="font-size: 12.5px; font-weight: 700; color: rgba(6,24,38,0.7); margin: 18px 0 6px;">Name on card</div>
+                <input style="width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid rgba(6,24,38,0.16); border-radius: 8px; padding: 10px 12px; font-family: var(--x-sans); font-size: 14px; color: #061826; outline: none; transition: border-color 150ms ease;" style-focus="border-color: {{ ckAccent }};">
+
+                <div style="font-size: 12.5px; font-weight: 700; color: rgba(6,24,38,0.7); margin: 18px 0 6px;">Country or region</div>
+                <span style="position: relative; display: block;">
+                  <input value="Ireland" readOnly="{{ true }}" style="width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid rgba(6,24,38,0.16); border-radius: 8px; padding: 10px 12px; font-family: var(--x-sans); font-size: 14px; color: #061826; outline: none;">
+                  <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 18px; color: rgba(6,24,38,0.4);">expand_more</span>
+                </span>
+
+                <button style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 24px; border: none; border-radius: 8px; padding: 12px 16px; background: {{ ckAccent }}; color: #ffffff; font-family: var(--x-sans); font-size: 15px; font-weight: 700; cursor: pointer; transition: filter 150ms ease;" style-hover="filter: brightness(1.12);">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: #ffffff;">lock</span>
+                  <span>{{ ckBtnText }}</span>
+                </button>
+
+                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px;">
+                  <span class="material-symbols-outlined" style="font-size: 13px; color: rgba(6,24,38,0.4);">lock</span>
+                  <span style="font-size: 11.5px; color: rgba(6,24,38,0.45);">Payments processed by Stripe · Protected by Trustap escrow</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isPlaceholder }}" hint-placeholder-val="{{ false }}">
+        <section data-screen-label="Placeholder screen" style="background: var(--t-card); border: 1px solid var(--t-cardbd); border-radius: 16px; box-shadow: var(--t-shadow-sm); padding: 72px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;">
+          <span style="width: 52px; height: 52px; border-radius: 999px; background: var(--t-tile-bg); border: 1px solid var(--t-tile-bd); display: inline-flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 26px; color: var(--t-link);">{{ activeIcon }}</span>
+          </span>
+          <div style="font-weight: 800; font-size: 18px; color: var(--t-head);">{{ pageTitle }} is next</div>
+          <div style="font-size: 14px; line-height: 1.5; color: var(--t-t2); max-width: 380px;">This pass covers Overview, Agent reach, Catalog and Connections. Tell me which section you want taken in this direction next.</div>
+        </section>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  static PRODUCTS = [
+    { id: "kb", name: "Mechanical Keyboard", price: "129.00", stock: "15",
+      image: "https://picsum.photos/seed/keyboard/600/400", gtin: "5011112223334", brand: "Demo Audio",
+      category: "peripherals", mpn: "", description: "Hot-swappable 75% mechanical keyboard with PBT keycaps.",
+      condition: "New", salePrice: "109.00", googleCat: "Electronics > Electronics Accessories > Computer Components",
+      color: "Graphite", size: "", material: "PBT / aluminium", weight: "850",
+      extraImages: "https://picsum.photos/seed/kb2/600/400, https://picsum.photos/seed/kb3/600/400",
+      video: "https://example.com/kb-demo.mp4" },
+    { id: "hp", name: "Studio Headphones", price: "89.99", stock: "6",
+      image: "https://picsum.photos/seed/headphones/600/400", gtin: "5011112224441", brand: "Demo Audio",
+      category: "audio", mpn: "", description: "Closed-back studio headphones with 40 mm drivers.",
+      condition: "New", salePrice: "", googleCat: "Electronics > Audio > Audio Components > Headphones",
+      color: "Black", size: "", material: "Leatherette / steel", weight: "320", extraImages: "", video: "" },
+    { id: "dm", name: "Desk Mat XL", price: "24.99", stock: "40",
+      image: "https://picsum.photos/seed/deskmat/600/400", gtin: "5011112225559", brand: "Demo Audio",
+      category: "accessories", mpn: "", description: "900 × 400 mm stitched-edge desk mat.",
+      condition: "New", salePrice: "", googleCat: "Home & Garden > Decor > Desk Pads",
+      color: "Slate", size: "900 × 400 mm", material: "Vegan leather", weight: "600", extraImages: "", video: "" }
+  ];
+
+  static F_MAIN = [
+    { k: "name", l: "PRODUCT NAME", ph: "e.g. Mechanical Keyboard", h: "" },
+    { k: "image", l: "IMAGE URL", ph: "https://…", h: "All agents need a product image; Perplexity and Google will not list without one." },
+    { k: "gtin", l: "GTIN", ph: "Global trade item number", h: "Perplexity effectively requires a GTIN; Google needs it (or brand + MPN)." },
+    { k: "brand", l: "BRAND", ph: "", h: "Used by Google and Perplexity for product matching." },
+    { k: "category", l: "CATEGORY", ph: "", h: "Helps agents categorise the product." },
+    { k: "mpn", l: "MPN", ph: "Manufacturer part number", h: "" },
+    { k: "stock", l: "STOCK", ph: "0", h: "Out-of-stock products are marked unavailable in every feed." },
+    { k: "price", l: "PRICE (EUR)", ph: "0.00", h: "" }
+  ];
+
+  static F_RICH = [
+    { k: "condition", l: "CONDITION", ph: "New / Refurbished / Used" },
+    { k: "salePrice", l: "SALE PRICE (EUR)", ph: "0.00" },
+    { k: "googleCat", l: "GOOGLE CATEGORY", ph: "Electronics > …" },
+    { k: "color", l: "COLOR", ph: "" },
+    { k: "size", l: "SIZE", ph: "M / 42 / 2m" },
+    { k: "material", l: "MATERIAL", ph: "" },
+    { k: "weight", l: "WEIGHT (G)", ph: "0" },
+    { k: "extraImages", l: "EXTRA IMAGE URLS", ph: "Comma-separated URLs" },
+    { k: "video", l: "VIDEO URL", ph: "https://…" }
+  ];
+
+  static CK = { name: "Demo Merchant", accent: "#2949CE", btn: "Pay €129.00",
+    msg: "Your payment is held by Trustap until you confirm delivery.", badge: true, pane: "accent" };
+
+  state = { active: "checkout", mode: "24h", prog: 1, reveal: false, hover: null, theme: "dark",
+    products: Component.PRODUCTS, openId: null, draft: null, search: "", ck: Component.CK };
+
+  setCk(k, v) {
+    const ck = { ...this.state.ck, [k]: v };
+    this.setState({ ck });
+    try { localStorage.setItem("tsx-checkout", JSON.stringify(ck)); } catch (e) {}
+  }
+
+  setDraft(k, v) { this.setState({ draft: { ...this.state.draft, [k]: v } }); }
+
+  toggleRow(id) {
+    if (this.state.openId === id) { this.setState({ openId: null, draft: null }); return; }
+    const p = this.state.products.find((x) => x.id === id);
+    this.setState({ openId: id, draft: { ...p } });
+  }
+
+  saveDraft() {
+    const { products, openId, draft } = this.state;
+    this.setState({ products: products.map((p) => (p.id === openId ? { ...draft } : p)), openId: null, draft: null });
+  }
+
+  cancelDraft() { this.setState({ openId: null, draft: null }); }
+
+  addProduct() {
+    const id = "p" + Date.now();
+    const p = { id, name: "New product", price: "", stock: "", image: "", gtin: "", brand: "", category: "", mpn: "",
+      description: "", condition: "New", salePrice: "", googleCat: "", color: "", size: "", material: "", weight: "",
+      extraImages: "", video: "" };
+    this.setState({ products: [...this.state.products, p], openId: id, draft: { ...p }, search: "" });
+  }
+
+  checks(p) { return [!!p.image, !!(p.gtin || (p.brand && p.mpn)), !!p.category, !!p.description]; }
+
+  componentDidMount() {
+    let t = null;
+    try { t = localStorage.getItem("tsx-theme"); } catch (e) {}
+    if (t === "light" || t === "dark") {
+      document.documentElement.setAttribute("data-theme", t);
+      this.setState({ theme: t });
+    }
+    try {
+      const s = localStorage.getItem("tsx-checkout");
+      if (s) this.setState({ ck: { ...Component.CK, ...JSON.parse(s) } });
+    } catch (e) {}
+    this.animate();
+  }
+
+  componentWillUnmount() { if (this._raf) cancelAnimationFrame(this._raf); }
+
+  toggleTheme() {
+    const t = this.state.theme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    try { localStorage.setItem("tsx-theme", t); } catch (e) {}
+    this.setState({ theme: t });
+  }
+
+  animate() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    this.setState({ prog: 0, reveal: false, hover: null });
+    const dur = 950;
+    let t0 = null;
+    const tick = (t) => {
+      if (t0 === null) t0 = t;
+      const p = Math.min(1, (t - t0) / dur);
+      this.setState({ prog: p });
+      if (p < 1) this._raf = requestAnimationFrame(tick);
+    };
+    this._raf = requestAnimationFrame(tick);
+    setTimeout(() => this.setState({ reveal: true }), 80);
+  }
+
+  setMode(m) {
+    if (m === this.state.mode) return;
+    this.setState({ mode: m, reveal: false, hover: null });
+    setTimeout(() => this.setState({ reveal: true }), 60);
+  }
+
+  ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+  pal() {
+    const dark = this.state.theme === "dark";
+    return dark ? {
+      line: "#7C95FF", lineGlow: "drop-shadow(0 0 6px rgba(110,139,255,0.7))",
+      areaTop: "rgba(110,139,255,0.30)", grid: "rgba(255,255,255,0.05)",
+      cross: "rgba(255,255,255,0.18)", dotBd: "#060A14",
+      tipBg: "rgba(10,16,32,0.95)", tipFg: "#EEF2FF", tipBd: "1px solid rgba(110,139,255,0.45)",
+      axis: "rgba(238,242,255,0.32)", axisBd: "rgba(255,255,255,0.07)",
+      barGrad: "linear-gradient(180deg, #7C95FF, #2949CE)", barGlow: "0 0 10px rgba(110,139,255,0.4)",
+      dash: "rgba(255,255,255,0.16)"
+    } : {
+      line: "#2949CE", lineGlow: "none",
+      areaTop: "rgba(41,73,206,0.16)", grid: "rgba(6,24,38,0.06)",
+      cross: "rgba(6,24,38,0.25)", dotBd: "#ffffff",
+      tipBg: "#061826", tipFg: "#ffffff", tipBd: "none",
+      axis: "rgba(6,24,38,0.4)", axisBd: "rgba(6,24,38,0.07)",
+      barGrad: "linear-gradient(180deg, #4D6BFF, #2949CE)", barGlow: "none",
+      dash: "rgba(6,24,38,0.18)"
+    };
+  }
+
+  buildChart() {
+    const { mode, reveal, hover } = this.state;
+    const P = this.pal();
+    const FETCH24 = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,3,6,3,1,0,0,1,1];
+    const REV7 = [0, 29.99, 0, 59.99, 0, 0, 89.98];
+    const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const data = mode === "24h" ? FETCH24 : REV7;
+    const n = data.length;
+    const W = 1000, H = 260, TOP = 18, BASE = H - 6;
+    const max = Math.max(...data) * 1.15 || 1;
+    const X = (i) => (i / (n - 1)) * W;
+    const Y = (v) => TOP + (1 - v / max) * (BASE - TOP);
+    const pts = data.map((v, i) => ({ x: X(i), y: Y(v) }));
+
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const c = (y) => Math.min(BASE, Math.max(TOP, y));
+      d += ` C ${p1.x + (p2.x - p0.x) / 6} ${c(p1.y + (p2.y - p0.y) / 6)}, ${p2.x - (p3.x - p1.x) / 6} ${c(p2.y - (p3.y - p1.y) / 6)}, ${p2.x} ${p2.y}`;
+    }
+    const areaD = d + ` L ${W} ${H} L 0 ${H} Z`;
+
+    const grid = [0.25, 0.5, 0.75].map((f, i) =>
+      React.createElement("line", {
+        key: "g" + i, x1: 0, x2: W,
+        y1: TOP + f * (BASE - TOP), y2: TOP + f * (BASE - TOP),
+        stroke: P.grid, strokeWidth: 1, vectorEffect: "non-scaling-stroke"
+      })
+    );
+
+    const svg = React.createElement("svg", {
+      viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none",
+      style: { position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }
+    },
+      React.createElement("defs", null,
+        React.createElement("linearGradient", { id: "xArea", x1: "0", y1: "0", x2: "0", y2: "1" },
+          React.createElement("stop", { offset: "0%", stopColor: P.areaTop }),
+          React.createElement("stop", { offset: "100%", stopColor: "rgba(110,139,255,0)" })
+        )
+      ),
+      grid,
+      React.createElement("path", { d: areaD, fill: "url(#xArea)", stroke: "none" }),
+      React.createElement("path", { d, fill: "none", stroke: P.line, strokeWidth: 2.5, strokeLinecap: "round", strokeLinejoin: "round", vectorEffect: "non-scaling-stroke", style: { filter: P.lineGlow } })
+    );
+
+    const revealWrap = React.createElement("div", {
+      style: {
+        position: "absolute", inset: 0,
+        clipPath: reveal ? "inset(0 -2% 0 0)" : "inset(0 100% 0 0)",
+        transition: "clip-path 1100ms cubic-bezier(0.0, 0, 0.2, 1)"
+      }
+    }, svg);
+
+    const children = [revealWrap];
+
+    if (hover !== null && hover >= 0 && hover < n) {
+      const v = data[hover];
+      const xPct = (hover / (n - 1)) * 100;
+      const yPct = (Y(v) / H) * 100;
+      const hoursAgo = 23 - hover;
+      const label = mode === "24h"
+        ? `${v} FETCH${v === 1 ? "" : "ES"} · ${hoursAgo === 0 ? "NOW" : hoursAgo + "H AGO"}`
+        : `€${v.toFixed(2)} · ${DAYS[hover]}`;
+      const flip = xPct > 82 ? "translateX(-100%)" : (xPct < 14 ? "translateX(0)" : "translateX(-50%)");
+      children.push(
+        React.createElement("div", { key: "xl", style: { position: "absolute", top: 0, bottom: 0, left: `${xPct}%`, width: 1, background: P.cross } }),
+        React.createElement("div", { key: "dot", style: { position: "absolute", left: `${xPct}%`, top: `${yPct}%`, width: 9, height: 9, borderRadius: 999, background: P.line, border: `2px solid ${P.dotBd}`, transform: "translate(-50%, -50%)", animation: "xPulseBlue 1.6s ease infinite" } }),
+        React.createElement("div", {
+          key: "tip", style: {
+            position: "absolute", left: `${xPct}%`,
+            top: yPct < 22 ? `calc(${yPct}% + 18px)` : `calc(${yPct}% - 44px)`,
+            transform: flip, background: P.tipBg, color: P.tipFg,
+            border: P.tipBd,
+            fontFamily: "var(--x-mono)", fontSize: 11, letterSpacing: "0.8px",
+            padding: "6px 11px", borderRadius: 8, whiteSpace: "nowrap", pointerEvents: "none",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.35)"
+          }
+        }, label)
+      );
+    }
+
+    const plot = React.createElement("div", {
+      style: { position: "relative", height: 260, cursor: "crosshair" },
+      onMouseMove: (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        const rel = (e.clientX - r.left) / r.width;
+        const idx = Math.max(0, Math.min(n - 1, Math.round(rel * (n - 1))));
+        if (idx !== this.state.hover) this.setState({ hover: idx });
+      },
+      onMouseLeave: () => this.setState({ hover: null })
+    }, children);
+
+    const tickLabels = mode === "24h" ? ["24H AGO", "18H AGO", "12H AGO", "6H AGO", "NOW"] : DAYS;
+    const axis = React.createElement("div", {
+      style: { display: "flex", justifyContent: "space-between", marginTop: 10, paddingTop: 10, borderTop: `1px solid ${P.axisBd}` }
+    }, tickLabels.map((t, i) =>
+      React.createElement("span", { key: i, style: { fontFamily: "var(--x-mono)", fontSize: 10, letterSpacing: "1.4px", color: P.axis } }, t)
+    ));
+
+    return React.createElement("div", null, plot, axis);
+  }
+
+  buildBars(arr, e) {
+    const P = this.pal();
+    const max = Math.max(...arr) || 1;
+    return React.createElement("div", {
+      style: { display: "flex", alignItems: "flex-end", gap: 3, height: 84, borderBottom: `1px dashed ${P.dash}` }
+    }, arr.map((v, i) =>
+      React.createElement("span", {
+        key: i,
+        style: {
+          flex: 1,
+          height: v > 0 ? `${Math.max(8, (v / max) * 100 * e)}%` : 0,
+          background: P.barGrad,
+          borderRadius: 2,
+          boxShadow: v > 0 ? P.barGlow : "none"
+        }
+      })
+    ));
+  }
+
+  renderVals() {
+    const { active, mode, prog, theme } = this.state;
+    const e = this.ease(prog);
+    const dark = theme === "dark";
+
+    const NAV = [
+      { id: "overview", icon: "home", label: "Overview", sub: "How your catalog is doing across AI shopping agents." },
+      { id: "reach", icon: "monitoring", label: "Agent reach", sub: "Every surface AI agents use to discover your products." },
+      { id: "catalog", icon: "grid_view", label: "Catalog", sub: "Listing quality and the data each agent still needs." },
+      { id: "connections", icon: "hub", label: "Connections", sub: "Payments, notifications, and store synchronisation." },
+      { id: "checkout", icon: "shopping_cart_checkout", label: "Checkout", title: "Checkout customization", sub: "How your Trustap-protected checkout looks to buyers — payments by Stripe." }
+    ];
+    const current = NAV.find((n) => n.id === active) || NAV[0];
+
+    const navItems = NAV.map((n) => {
+      const on = n.id === active;
+      return {
+        ...n,
+        bg: on ? "linear-gradient(135deg, #2949CE, #4D6BFF)" : "transparent",
+        hoverBg: on ? "linear-gradient(135deg, #2949CE, #4D6BFF)" : "var(--t-glass-h)",
+        glow: on ? "0 4px 20px rgba(41,73,206,0.45)" : "none",
+        fg: on ? "#ffffff" : "var(--t-t2)",
+        iconFg: on ? "#ffffff" : "var(--t-t3)",
+        weight: on ? 700 : 500,
+        onSelect: () => this.setState({ active: n.id, hover: null })
+      };
+    });
+
+    const kpis = [
+      { label: "PRODUCTS LIVE", value: String(Math.round(3 * e)), suffix: "", color: "var(--t-head)", caption: "3 fully agent-ready" },
+      { label: "AGENT FETCHES · 24H", value: String(Math.round(18 * e)), suffix: "", color: "var(--t-head)", caption: "4 of 4 agents active" },
+      { label: "PAID ORDERS", value: String(Math.round(3 * e)), suffix: "", color: "var(--t-head)", caption: "settled via Trustap escrow" },
+      { label: "REVENUE", value: (179.96 * e).toFixed(2), suffix: "EUR", color: "var(--t-link)", caption: "all time, paid checkouts" }
+    ];
+
+    const AGENTS = [
+      { name: "ChatGPT", count: 6, ago: "6m" },
+      { name: "Perplexity", count: 6, ago: "12m" },
+      { name: "Google", count: 5, ago: "6m" },
+      { name: "Copilot", count: 1, ago: "10m" }
+    ];
+    const maxC = Math.max(...AGENTS.map((a) => a.count));
+    const activity = AGENTS.map((a, i) => ({
+      ...a,
+      pctW: `${(a.count / maxC) * 100 * e}%`,
+      border: i < AGENTS.length - 1 ? "1px solid var(--t-div)" : "none"
+    }));
+
+    const mkSurf = (list) => list.map((s, i) => ({
+      ...s,
+      agoColor: s.ago === "never" ? "var(--t-t4)" : "var(--t-t3)",
+      border: i < list.length - 1 ? "1px solid var(--t-div)" : "none",
+      onCopy: () => { if (navigator.clipboard) navigator.clipboard.writeText(s.url); }
+    }));
+
+    const REACH = [
+      { mono: "GPT", name: "ChatGPT", provider: "OpenAI", fetches: 6, last: "16m ago",
+        bars: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,4],
+        surfaces: [
+          { name: "acp manifest", ago: "never", url: "https://demo-merchant.example/.well-known/acp.json" },
+          { name: "acp feed", ago: "16m ago", url: "https://demo-merchant.example/feeds/acp.json" }
+        ] },
+      { mono: "CP", name: "Copilot", provider: "Microsoft", fetches: 1, last: "21m ago",
+        bars: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        surfaces: [
+          { name: "copilot manifest", ago: "never", url: "https://demo-merchant.example/.well-known/copilot.json" },
+          { name: "copilot feed", ago: "21m ago", url: "https://demo-merchant.example/feeds/copilot.json" }
+        ] },
+      { mono: "G", name: "Google", provider: "Gemini / AI Mode", fetches: 5, last: "16m ago",
+        bars: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,3],
+        surfaces: [
+          { name: "ucp manifest", ago: "21m ago", url: "https://demo-merchant.example/.well-known/ucp.json" },
+          { name: "gmc feed", ago: "16m ago", url: "https://demo-merchant.example/feeds/gmc.xml" }
+        ] },
+      { mono: "PX", name: "Perplexity", provider: "Comet / Shopping", fetches: 6, last: "16m ago",
+        bars: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,4],
+        surfaces: [
+          { name: "gmc feed", ago: "16m ago", url: "https://demo-merchant.example/feeds/gmc.xml" },
+          { name: "shop page", ago: "never", url: "https://demo-merchant.example/shop" },
+          { name: "product page", ago: "16m ago", url: "https://demo-merchant.example/products" }
+        ] }
+    ];
+    const reachAgents = REACH.map((g) => ({
+      ...g,
+      chartEl: this.buildBars(g.bars, e),
+      surfaces: mkSurf(g.surfaces)
+    }));
+
+    const q = (this.state.search || "").toLowerCase();
+    const allP = this.state.products;
+    const readyCount = allP.filter((p) => this.checks(p).every(Boolean)).length;
+    const readyPctNum = Math.round((allP.length ? readyCount / allP.length : 0) * 100 * e);
+    const filtered = allP.filter((p) => p.name.toLowerCase().indexOf(q) !== -1);
+    const catProducts = filtered.map((p) => {
+      const open = p.id === this.state.openId;
+      const src = open && this.state.draft ? this.state.draft : p;
+      const ch = this.checks(p);
+      const okCount = ch.filter(Boolean).length;
+      const mk = (defs) => (open ? defs.map((f) => ({
+        ...f, h: f.h || "",
+        value: String(src[f.k] == null ? "" : src[f.k]),
+        onChange: (ev) => this.setDraft(f.k, ev.target.value)
+      })) : []);
+      return {
+        id: p.id, name: p.name,
+        priceLabel: (p.price || "—") + " EUR",
+        stockLabel: String(p.stock || 0),
+        dots: ch.map((c) => ({ bg: c ? "var(--t-green)" : "var(--t-bar-track)" })),
+        frac: okCount + "/4",
+        attIcon: okCount === 4 ? "check" : "warning",
+        attFg: okCount === 4 ? "var(--t-green)" : "#E0A33D",
+        attLabel: okCount === 4 ? "Complete" : (4 - okCount) + " missing",
+        chev: open ? "expand_less" : "expand_more",
+        rowBg: open ? "var(--t-glass)" : "transparent",
+        edDisplay: open ? "block" : "none",
+        mainFields: mk(Component.F_MAIN),
+        richFields: mk(Component.F_RICH),
+        desc: String(src.description == null ? "" : src.description),
+        onDesc: open ? (ev) => this.setDraft("description", ev.target.value) : () => {},
+        onToggle: () => this.toggleRow(p.id),
+        onSave: () => this.saveDraft(),
+        onCancel: () => this.cancelDraft()
+      };
+    });
+
+    const connStatus = [
+      { title: "Trustap payments", status: "Connected", on: true,
+        body: "Checkouts settle through your Trustap account with buyer protection on every order.",
+        foot: "Merchant of record stays with you; Trustap handles the payment flow." },
+      { title: "Payment notifications", status: "Receiving", on: true,
+        body: "Trustap notifies the Index when buyers pay; orders and stock update automatically.",
+        foot: "Last event 8h ago" },
+      { title: "Store sync", status: "Not connected", on: false,
+        body: "Store connector coming soon; inventory currently updates on Index sales only.",
+        foot: "Two-way inventory sync arrives with the store connector." }
+    ].map((c) => ({
+      ...c,
+      dotBg: c.on ? "var(--t-green)" : "var(--t-t4)",
+      dotAnim: c.on ? "xPulseGreen 2.4s ease infinite" : "none"
+    }));
+
+    const mkConn = (list) => list.map((i) => ({
+      badge: "", ...i,
+      badgeDisplay: i.badge ? "inline-flex" : "none"
+    }));
+
+    const connPlatforms = mkConn([
+      { mono: "S", tileBg: "#7AB55C", tileFg: "#ffffff", name: "Shopify", sub: "Catalog import and two-way stock sync" },
+      { mono: "W", tileBg: "#7F54B3", tileFg: "#ffffff", name: "WooCommerce", sub: "WordPress storefronts" },
+      { mono: "B", tileBg: "#34313F", tileFg: "#ffffff", name: "BigCommerce", sub: "Enterprise storefronts" },
+      { mono: "M", tileBg: "#EB5C2E", tileFg: "#ffffff", name: "Adobe Commerce", sub: "Magento catalogs" }
+    ]);
+
+    const connShipping = mkConn([
+      { mono: "WF", tileBg: "linear-gradient(135deg, #2949CE, #6E8BFF)", tileFg: "#ffffff", name: "Worry Free Delivery", badge: "BY TRUSTAP", sub: "Door-to-door delivery with escrow built in" },
+      { mono: "Sh", tileBg: "#0BA567", tileFg: "#ffffff", name: "Shippo", badge: "VIA TRUSTAP API", sub: "Multi-carrier rates and labels" },
+      { mono: "P24", tileBg: "#D6173A", tileFg: "#ffffff", name: "Paket24", sub: "Croatian parcel delivery" },
+      { mono: "DHL", tileBg: "#FFCC00", tileFg: "#D40511", name: "DHL", sub: "Express and parcel" },
+      { mono: "GLS", tileBg: "#1C2E63", tileFg: "#ffffff", name: "GLS", sub: "European parcel network" },
+      { mono: "DPD", tileBg: "#DC0032", tileFg: "#ffffff", name: "DPD", sub: "Parcel delivery" },
+      { mono: "UPS", tileBg: "#351C15", tileFg: "#FFB500", name: "UPS", sub: "Global shipping" },
+      { mono: "HP", tileBg: "#FFD500", tileFg: "#1A2735", name: "Hrvatska pošta", sub: "Croatian postal service" }
+    ]);
+
+    const segOn = { bg: "linear-gradient(135deg, #2949CE, #4D6BFF)", fg: "#ffffff", sh: "0 2px 14px rgba(41,73,206,0.5)" };
+    const segOff = { bg: "transparent", fg: "var(--t-t3)", sh: "none" };
+    const s24 = mode === "24h" ? segOn : segOff;
+    const s7 = mode === "7d" ? segOn : segOff;
+
+    const ck = this.state.ck;
+    const ckSwatches = ["#2949CE", "#061826", "#0BA567", "#CE299B", "#EB5C2E"].map((cl) => ({
+      bg: cl,
+      ring: cl === ck.accent ? "var(--t-head)" : "transparent",
+      onPick: () => this.setCk("accent", cl)
+    }));
+    const pA = ck.pane === "accent" ? segOn : segOff;
+    const pW = ck.pane === "white" ? segOn : segOff;
+
+    return {
+      navItems,
+      isOverview: active === "overview",
+      isReach: active === "reach",
+      isConnections: active === "connections",
+      isCatalog: active === "catalog",
+      isCheckout: active === "checkout",
+      isPlaceholder: ["overview", "reach", "connections", "catalog", "checkout"].indexOf(active) === -1,
+      pageTitle: current.title || current.label,
+      pageSub: current.sub,
+      activeIcon: current.icon,
+      themeIcon: dark ? "light_mode" : "dark_mode",
+      themeTitle: dark ? "Switch to light mode" : "Switch to dark mode",
+      toggleTheme: () => this.toggleTheme(),
+      trustFacts: [
+        { label: "18/18 SIGNED FETCHES" },
+        { label: "3/3 ESCROW-SETTLED" },
+        { label: "KYC VERIFIED" }
+      ],
+      kpis,
+      activity,
+      reachAgents,
+      connStatus,
+      connPlatforms,
+      connShipping,
+      catProducts,
+      readyLabel: readyPctNum + "% agent ready",
+      readyW: readyPctNum + "%",
+      search: this.state.search,
+      onSearch: (ev) => this.setState({ search: ev.target.value }),
+      addProduct: () => this.addProduct(),
+      emptyDisplay: filtered.length ? "none" : "block",
+      ckName: ck.name,
+      onCkName: (ev) => this.setCk("name", ev.target.value),
+      ckSwatches,
+      ckBtnText: ck.btn || "Pay",
+      onCkBtn: (ev) => this.setCk("btn", ev.target.value),
+      ckMsg: ck.msg,
+      onCkMsg: (ev) => this.setCk("msg", ev.target.value),
+      ckBadgeDisplay: ck.badge ? "flex" : "none",
+      ckTogBg: ck.badge ? ck.accent : "var(--t-bar-track)",
+      ckKnobX: ck.badge ? "21px" : "3px",
+      onCkBadge: () => this.setCk("badge", !ck.badge),
+      ckAccent: ck.accent,
+      ckAccentSoft: `color-mix(in srgb, ${ck.accent} 30%, #ffffff)`,
+      ckPaneBg: ck.pane === "accent" ? `color-mix(in srgb, ${ck.accent} 7%, #ffffff)` : "#ffffff",
+      pABg: pA.bg, pAFg: pA.fg, pASh: pA.sh,
+      pWBg: pW.bg, pWFg: pW.fg, pWSh: pW.sh,
+      onPaneA: () => this.setCk("pane", "accent"),
+      onPaneW: () => this.setCk("pane", "white"),
+      ckTabs: [{ title: ck.name + " — Checkout" }],
+      chartTitle: mode === "24h" ? "Agent fetches" : "Revenue",
+      chartEl: this.buildChart(),
+      m24Bg: s24.bg, m24Fg: s24.fg, m24Sh: s24.sh,
+      m7Bg: s7.bg, m7Fg: s7.fg, m7Sh: s7.sh,
+      set24: () => this.setMode("24h"),
+      set7: () => this.setMode("7d"),
+      refresh: () => this.animate(),
+      goReach: () => this.setState({ active: "reach", hover: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -64,3 +64,16 @@ Phase 1 payment flow is BUILT and **verified end-to-end on stage** (2026-06-12, 
 ## Confluence
 
 Research and docs publish to the RND space, Agentic Commerce folder (Tech Reference, Baseline, News, per-protocol research). Durable approval exists to create/edit/delete there without asking. Local-first: save docs in the repo before pushing.
+
+## NEXT UP (parked 2026-06-13, resume on "go"): implement Claude Design handoff v3
+
+Bundle saved in `design-handoff/` (README + chat transcript + `Trustap Index Dashboard v3.dc.html`). The chat transcript carries the intent; the v3 file carries the tokens (lines ~24-110: full `--t-*` light/dark token sets, JetBrains Mono for data, Mulish stays for UI in the mock).
+
+Implementation plan agreed with myself after reading both:
+1. **Tokenized light/dark theme**: restructure styles.css around `[data-theme]` variable sets copied from the v3 tokens (dark = "vault": #060A14 bg with ambient blue radial glows + fine grid, glass cards rgba(255,255,255,0.05) with blur, glow borders on hover `--t-glow`; light = current refined white). Sun/moon toggle in the header, persisted in localStorage. Logo swaps: white wordmark in dark (now at `frontend/public/trustap-logo-white.png`), colour in light.
+2. **Overview additions**: "Trust layer" strip (lavender/cyan gradient card, facts: signed fetches / settled payments / KYC; REWORD any "escrow" to buyer protection per the standing wording rule), "Secure session · TLS 1.3" chip in the header, KPI count-up animation, chart draw-in animation on load/refresh.
+3. **Agent reach**: glowing fetch bars on dashed baselines (dark mode), keep current structure.
+4. **NEW sixth tab "Checkout"** (checkout customization) — design replaced Orders with it, but our Orders is real functionality: KEEP Orders, ADD Checkout tab. Left panel controls (merchant name, 5 accent swatches incl. Trustap blue/charcoal/green/magenta/orange, pay-button text, buyer message, protection-badge toggle, tinted/white brand panel toggle; persist in localStorage). Right: live preview in a browser-chrome frame (checkout.trustap.com/pay/TX-...): Stripe-style two-pane checkout, drag/drop + click-upload logo circle (dataURL in localStorage), product + price, custom message, protection badge, "Powered by trustap INDEX", payment-form mock with accent pay button, fine print "Payments processed by Stripe · Protected by Trustap buyer protection".
+5. Wording deviation from the mock, deliberate: the design says "escrow" in three places; implement as "buyer protection" (Dino's standing rule).
+
+The design mock uses Mulish + JetBrains Mono; our v4 uses Space Grotesk/Geist/Geist Mono. DECISION NEEDED at resume (default: keep our v4 fonts, take the v3 colors/effects/structure; the design predates the font change and Dino approved v4 type).
