@@ -870,3 +870,15 @@ th {
 .field-missing input, .field-missing textarea { border-color: #ecc58a; background: #fffdf8; }
 .field-hint { color: var(--text-3); font-size: 0.7rem; line-height: 1.45; }
 .editor-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.9rem; }
+
+/* ---------- v4.2 catalog toolbar + new product ---------- */
+
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+.editor-card { padding: 0; margin-bottom: 0.9rem; }
+.editor-card .editor { border-bottom: none; }

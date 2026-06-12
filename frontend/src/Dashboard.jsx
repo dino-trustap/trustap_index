@@ -208,7 +208,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
 
             {page === "overview" && <OverviewPage overview={overview} navigate={navigate} />}
             {page === "agents" && <AgentsPage agents={overview.agents || []} />}
-            {page === "catalog" && <CatalogPage health={overview.catalog_health} onSaved={loadOverview} />}
+            {page === "catalog" && <CatalogPage health={overview.catalog_health} onSaved={loadOverview} merchantId={merchantId} connection={overview.connection} />}
             {page === "connections" && <ConnectionsPage connection={overview.connection} />}
             {page === "orders" && <OrdersPage merchantId={merchantId} apiFetch={apiFetch} />}
           </div>
@@ -662,13 +662,119 @@ function ProductEditor({ product, onSaved, onClose }) {
   );
 }
 
-function CatalogPage({ health, onSaved }) {
+function NewProductPanel({ merchantId, onSaved, onClose }) {
+  const [values, setValues] = useState({
+    title: "", priceEur: "", quantity: "10", currency: "eur",
+    description: "", image_url: "", gtin: "", brand: "", category: "", mpn: "", sku: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const set = (k, v) => setValues((old) => ({ ...old, [k]: v }));
+
+  const save = () => {
+    const priceMinor = Math.round(parseFloat(values.priceEur.replace(",", ".")) * 100);
+    if (!values.title.trim()) { setError("Title is required."); return; }
+    if (!Number.isFinite(priceMinor) || priceMinor <= 0) { setError("Enter a valid price."); return; }
+    setSaving(true);
+    setError(null);
+    fetch(`/api/merchants/${merchantId}/products`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: values.title.trim(),
+        price: priceMinor,
+        currency: values.currency,
+        quantity: Math.max(0, parseInt(values.quantity, 10) || 0),
+        description: values.description,
+        image_url: values.image_url,
+        gtin: values.gtin,
+        brand: values.brand,
+        category: values.category,
+        mpn: values.mpn,
+        sku: values.sku,
+      }),
+    })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) throw new Error(d.message || "create failed");
+        onSaved();
+        onClose();
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setSaving(false));
+  };
+
+  return (
+    <div className="card editor-card">
+      <div className="card-head">
+        <h2>New product</h2>
+        <span className="head-hint">Complete data lists on every agent from day one</span>
+      </div>
+      <div className="editor" style={{ borderTop: "none" }}>
+        <div className="editor-grid">
+          <label className="field">
+            <span className="field-label">Title *</span>
+            <input value={values.title} placeholder="Product name" onChange={(e) => set("title", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">Price (EUR) *</span>
+            <input inputMode="decimal" value={values.priceEur} placeholder="79.99" onChange={(e) => set("priceEur", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">Stock *</span>
+            <input type="number" min="0" value={values.quantity} onChange={(e) => set("quantity", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">Image URL</span>
+            <input value={values.image_url} placeholder="https://..." onChange={(e) => set("image_url", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">GTIN</span>
+            <input value={values.gtin} placeholder="e.g. 5012345678900" onChange={(e) => set("gtin", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">Brand</span>
+            <input value={values.brand} placeholder="Brand name" onChange={(e) => set("brand", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">Category</span>
+            <input value={values.category} placeholder="e.g. audio" onChange={(e) => set("category", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">MPN</span>
+            <input value={values.mpn} placeholder="Manufacturer part number" onChange={(e) => set("mpn", e.target.value)} />
+          </label>
+          <label className="field">
+            <span className="field-label">SKU</span>
+            <input value={values.sku} placeholder="Internal SKU" onChange={(e) => set("sku", e.target.value)} />
+          </label>
+          <label className="field field-wide">
+            <span className="field-label">Description</span>
+            <textarea rows="3" value={values.description} placeholder="What the product is, what it includes, why it is good. Agents rank on this." onChange={(e) => set("description", e.target.value)} />
+            <span className="field-hint">{ISSUE_HINTS.missing_description}</span>
+          </label>
+        </div>
+        {error && <div className="banner banner-error">{error}</div>}
+        <div className="editor-actions">
+          <button className="btn btn-ghost btn-small" onClick={onClose} disabled={saving}>Cancel</button>
+          <button className="btn btn-primary btn-small" onClick={save} disabled={saving}>
+            {saving ? "Creating..." : "Create product"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CatalogPage({ health, onSaved, merchantId, connection }) {
   const PAGE = 25;
   const [query, setQuery] = useState("");
   const [offset, setOffset] = useState(0);
   const [editing, setEditing] = useState(null);
+  const [adding, setAdding] = useState(false);
   const products = health?.products || [];
   const summary = health?.summary;
+  const storeConnected = connection?.store_sync?.status === "connected";
 
   const filtered = products.filter((p) =>
     p.title.toLowerCase().includes(query.toLowerCase())
@@ -682,21 +788,37 @@ function CatalogPage({ health, onSaved }) {
 
   return (
     <>
-      <div className="progress-row">
-        <span style={{ whiteSpace: "nowrap" }}><strong>{pct}%</strong> agent ready</span>
-        <div className="progress"><div style={{ width: `${pct}%` }} /></div>
+      <div className="catalog-toolbar">
+        <div className="progress-row" style={{ margin: 0, flex: 1, minWidth: "220px" }}>
+          <span style={{ whiteSpace: "nowrap" }}><strong>{pct}%</strong> agent ready</span>
+          <div className="progress"><div style={{ width: `${pct}%` }} /></div>
+        </div>
         <input
           className="search"
           placeholder="Search products..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        <button
+          className="btn btn-ghost btn-small"
+          disabled={!storeConnected}
+          title={storeConnected ? "Push catalog changes to your store" : "Connect a store first (Connections tab)"}
+        >
+          Sync to store
+        </button>
+        <button className="btn btn-primary btn-small" onClick={() => setAdding(!adding)}>
+          {adding ? "Close" : "Add product"}
+        </button>
       </div>
+
+      {adding && (
+        <NewProductPanel merchantId={merchantId} onSaved={onSaved} onClose={() => setAdding(false)} />
+      )}
 
       {pageRows.length === 0 ? (
         <div className="card empty">
           {products.length === 0
-            ? "No products yet. Add products via the API to appear in agent catalogs."
+            ? "No products yet. Click Add product to create your first listing."
             : "No products match your search."}
         </div>
       ) : (
