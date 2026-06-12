@@ -77,3 +77,7 @@ Implementation plan agreed with myself after reading both:
 5. Wording deviation from the mock, deliberate: the design says "escrow" in three places; implement as "buyer protection" (Dino's standing rule).
 
 The design mock uses Mulish + JetBrains Mono; our v4 uses Space Grotesk/Geist/Geist Mono. DECISION NEEDED at resume (default: keep our v4 fonts, take the v3 colors/effects/structure; the design predates the font change and Dino approved v4 type).
+
+**Animations (added to the v3 handoff scope, Dino 2026-06-13):** slick opening/sliding motion: staggered card entrance on page switch (60-80ms steps, translateY + fade), sliding expand for the catalog editor row and the Add-product panel (height/opacity transition, not instant), theme toggle cross-fade (brief 200ms color transition on the token swap), chart draw-in (stroke-dashoffset) and KPI count-up on load/refresh per the design, hover micro-motion kept subtle. Respect prefers-reduced-motion.
+
+**Cloud-run note:** frontend-only implementation is possible from the repo alone (npm install + npm run build verifies). The Go binary CANNOT be rebuilt in the cloud (private module github.com/trustap/rest_api resolves only from Dino's machine cache) — leave dist/ committed, do NOT run make api, do not commit a stale target/ binary. Local embed rebuild happens next local session.
