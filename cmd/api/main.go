@@ -1,13 +1,18 @@
 package main
 
 import (
+	"context"
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	oidc "github.com/coreos/go-oidc"
 
 	"github.com/julienschmidt/httprouter"
 	rest_api_log "github.com/trustap/rest_api/pkg/log"
@@ -16,6 +21,7 @@ import (
 	"github.com/trustap/rest_api/pkg/rest"
 	"github.com/trustap/rest_api/pkg/rest/responses"
 	"github.com/trustap/rest_api/pkg/rest/responses/resputil"
+	"github.com/trustap/trustap_index/frontend"
 	"github.com/trustap/trustap_index/internal/middleware"
 	"github.com/trustap/trustap_index/internal/store"
 	"github.com/trustap/trustap_index/internal/surfaces"
@@ -125,6 +131,29 @@ func run(
 		}
 	}
 
+	// Dashboard SSO: when Keycloak is configured, /api/dashboard/* (except
+	// the public bootstrap config) requires a valid bearer ID token. When
+	// not configured the dashboard runs open (dev mode).
+	var dashboardVerifier *oidc.IDTokenVerifier
+	if cfg != nil && cfg.Dashboard.KeycloakAuthority != "" && cfg.Dashboard.KeycloakClientID != "" {
+		provider, err := oidc.NewProvider(context.Background(), cfg.Dashboard.KeycloakAuthority)
+		if err != nil {
+			return fmt.Errorf("couldn't reach keycloak issuer '%s': %w", cfg.Dashboard.KeycloakAuthority, err)
+		}
+		dashboardVerifier = provider.Verifier(&oidc.Config{ClientID: cfg.Dashboard.KeycloakClientID})
+		globalCtx.KeycloakAuthority = cfg.Dashboard.KeycloakAuthority
+		globalCtx.KeycloakClientID = cfg.Dashboard.KeycloakClientID
+		_ = setupLogger.Logf(rest_api_log.LevelInfo, "dashboard SSO enabled against '%s'", cfg.Dashboard.KeycloakAuthority)
+	} else {
+		_ = setupLogger.Logf(rest_api_log.LevelInfo, "dashboard SSO not configured; dashboard runs in dev mode")
+	}
+
+	dashboardDist, err := fs.Sub(frontend.Dist, "dist")
+	if err != nil {
+		return fmt.Errorf("couldn't open embedded dashboard: %w", err)
+	}
+	dashboardFiles := http.FileServer(http.FS(dashboardDist))
+
 	// Set up endpoints
 	coreEndpts := core.Endpoints(svc.NewAPI(), &contextRefiner{})
 	endpts := coreEndpts
@@ -184,6 +213,78 @@ func run(
 						w.Header().Set("WWW-Authenticate", `Basic realm="trustap-webhooks"`)
 						w.WriteHeader(http.StatusUnauthorized)
 						return nil
+					}
+				}
+				return next.ServeHTTP(c, w, r)
+			},
+		),
+		rest_api_middleware.NewSimpleStep(
+			"dashboard static",
+			func(next rest_api_middleware.Handler[*middleware.MiddlewareContext], c *middleware.MiddlewareContext, w http.ResponseWriter, r *http.Request) error {
+				if r.URL.Path == "/dashboard" {
+					http.Redirect(w, r, "/dashboard/", http.StatusMovedPermanently)
+					return nil
+				}
+				if strings.HasPrefix(r.URL.Path, "/dashboard/") {
+					name := strings.TrimPrefix(r.URL.Path, "/dashboard/")
+					if name == "" {
+						name = "index.html"
+					}
+					if _, err := fs.Stat(dashboardDist, name); err != nil {
+						name = "index.html" // SPA fallback for client-side routes
+					}
+					// FileServer 301-redirects direct index.html requests, so
+					// serve the SPA shell by hand.
+					if name == "index.html" {
+						shell, err := fs.ReadFile(dashboardDist, "index.html")
+						if err != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							return nil
+						}
+						w.Header().Set("Content-Type", "text/html; charset=utf-8")
+						_, _ = w.Write(shell)
+						return nil
+					}
+					req := new(http.Request)
+					*req = *r
+					req.URL = new(url.URL)
+					*req.URL = *r.URL
+					req.URL.Path = "/" + name
+					dashboardFiles.ServeHTTP(w, req)
+					return nil
+				}
+				return next.ServeHTTP(c, w, r)
+			},
+		),
+		rest_api_middleware.NewSimpleStep(
+			"dashboard auth",
+			func(next rest_api_middleware.Handler[*middleware.MiddlewareContext], c *middleware.MiddlewareContext, w http.ResponseWriter, r *http.Request) error {
+				if dashboardVerifier != nil &&
+					strings.HasPrefix(r.URL.Path, "/api/dashboard/") &&
+					r.URL.Path != "/api/dashboard/config" {
+					authz := r.Header.Get("Authorization")
+					raw := strings.TrimPrefix(authz, "Bearer ")
+					if raw == "" || raw == authz {
+						w.WriteHeader(http.StatusUnauthorized)
+						return nil
+					}
+					if _, err := dashboardVerifier.Verify(r.Context(), raw); err != nil {
+						w.WriteHeader(http.StatusUnauthorized)
+						return nil
+					}
+				}
+				return next.ServeHTTP(c, w, r)
+			},
+		),
+		rest_api_middleware.NewSimpleStep(
+			"surface analytics",
+			func(next rest_api_middleware.Handler[*middleware.MiddlewareContext], c *middleware.MiddlewareContext, w http.ResponseWriter, r *http.Request) error {
+				if globalCtx.Store != nil && r.Method == http.MethodGet {
+					if merchantID, surface, ok := surfaceFromPath(r.URL.Path); ok {
+						userAgent := r.Header.Get("User-Agent")
+						go func() {
+							_ = globalCtx.Store.RecordSurfaceHit(merchantID, surface, userAgent)
+						}()
 					}
 				}
 				return next.ServeHTTP(c, w, r)
@@ -314,4 +415,29 @@ func errorsFromLogEvents(logEvents []map[string]any) []any {
 		errorLogs = append(errorLogs, data)
 	}
 	return errorLogs
+}
+
+// surfaceFromPath maps a request path onto (merchant, surface) for agent
+// surface analytics; ok is false for paths that aren't public surfaces.
+func surfaceFromPath(path string) (string, string, bool) {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	switch {
+	case len(parts) == 4 && parts[0] == "api" && parts[1] == "acp" && parts[3] == "feed":
+		return parts[2], "acp_feed", true
+	case len(parts) == 5 && parts[0] == "api" && parts[1] == "acp" && parts[3] == ".well-known":
+		return parts[2], "acp_manifest", true
+	case len(parts) == 4 && parts[0] == "api" && parts[1] == "copilot" && parts[3] == "feed":
+		return parts[2], "copilot_feed", true
+	case len(parts) == 5 && parts[0] == "api" && parts[1] == "copilot" && parts[3] == ".well-known":
+		return parts[2], "copilot_manifest", true
+	case len(parts) == 5 && parts[0] == "api" && parts[1] == "ucp" && parts[3] == ".well-known":
+		return parts[2], "ucp_manifest", true
+	case len(parts) == 3 && parts[0] == "feeds" && parts[2] == "gmc.csv":
+		return parts[1], "gmc_feed", true
+	case len(parts) == 2 && parts[0] == "shop":
+		return parts[1], "shop_page", true
+	case len(parts) == 4 && parts[0] == "shop" && parts[2] == "products":
+		return parts[1], "product_page", true
+	}
+	return "", "", false
 }

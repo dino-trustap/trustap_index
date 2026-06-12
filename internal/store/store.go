@@ -93,7 +93,7 @@ func Open(dsn string) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("couldn't open database: %w", err)
 	}
-	db = db.AutoMigrate(&Checkout{}, &WebhookEvent{}, &Product{})
+	db = db.AutoMigrate(&Checkout{}, &WebhookEvent{}, &Product{}, &SurfaceHit{})
 	if err := db.Error; err != nil {
 		return nil, fmt.Errorf("couldn't migrate database: %w", err)
 	}
@@ -242,4 +242,136 @@ func (s *Store) DecrementInventory(productID string, quantity int) error {
 		return fmt.Errorf("couldn't decrement inventory: %w", err)
 	}
 	return nil
+}
+
+// --- Dashboard: surface analytics, catalog health, recent activity ---
+
+// SurfaceHit records one fetch of a public agent surface (feed, manifest,
+// page), so merchants can see whether agents are actually pulling their
+// catalog.
+type SurfaceHit struct {
+	ID         uint   `gorm:"primary_key"`
+	MerchantID string `gorm:"index;size:100"`
+	Surface    string `gorm:"size:40"`
+	UserAgent  string `gorm:"size:400"`
+	CreatedAt  time.Time
+}
+
+func (s *Store) RecordSurfaceHit(merchantID, surface, userAgent string) error {
+	hit := &SurfaceHit{MerchantID: merchantID, Surface: surface, UserAgent: userAgent}
+	if err := s.db.Create(hit).Error; err != nil {
+		return fmt.Errorf("couldn't record surface hit: %w", err)
+	}
+	return nil
+}
+
+// SurfaceStatus summarises one surface's traffic for a merchant.
+type SurfaceStatus struct {
+	Surface       string
+	LastFetch     *time.Time
+	Hits24h       int
+	LastUserAgent string
+}
+
+func (s *Store) SurfaceStatuses(merchantID string) (map[string]*SurfaceStatus, error) {
+	type row struct {
+		Surface   string
+		LastFetch time.Time
+		Hits      int
+	}
+	var rows []row
+	err := s.db.Model(&SurfaceHit{}).
+		Select("surface, max(created_at) as last_fetch, count(*) as hits").
+		Where("merchant_id = ? AND created_at > ?", merchantID, time.Now().Add(-24*time.Hour)).
+		Group("surface").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, fmt.Errorf("couldn't summarise surface hits: %w", err)
+	}
+
+	out := map[string]*SurfaceStatus{}
+	for i := range rows {
+		r := rows[i]
+		last := r.LastFetch
+		out[r.Surface] = &SurfaceStatus{Surface: r.Surface, LastFetch: &last, Hits24h: r.Hits}
+	}
+
+	// Also surface the all-time last fetch for surfaces quiet in the last day.
+	var allTime []row
+	err = s.db.Model(&SurfaceHit{}).
+		Select("surface, max(created_at) as last_fetch, count(*) as hits").
+		Where("merchant_id = ?", merchantID).
+		Group("surface").
+		Scan(&allTime).Error
+	if err != nil {
+		return nil, fmt.Errorf("couldn't summarise surface hits: %w", err)
+	}
+	for i := range allTime {
+		r := allTime[i]
+		if _, ok := out[r.Surface]; !ok {
+			last := r.LastFetch
+			out[r.Surface] = &SurfaceStatus{Surface: r.Surface, LastFetch: &last, Hits24h: 0}
+		}
+	}
+	return out, nil
+}
+
+// ListAllProducts returns every non-archived product including out-of-stock,
+// for catalog health reporting.
+func (s *Store) ListAllProducts(merchantID string) ([]Product, error) {
+	var products []Product
+	err := s.db.
+		Where("merchant_id = ? AND status != ?", merchantID, ProductArchived).
+		Order("created_at desc").
+		Find(&products).Error
+	if err != nil {
+		return nil, fmt.Errorf("couldn't list products: %w", err)
+	}
+	return products, nil
+}
+
+func (s *Store) ListRecentCheckouts(merchantID string, limit int) ([]Checkout, error) {
+	var checkouts []Checkout
+	err := s.db.
+		Where("merchant_id = ?", merchantID).
+		Order("created_at desc").
+		Limit(limit).
+		Find(&checkouts).Error
+	if err != nil {
+		return nil, fmt.Errorf("couldn't list checkouts: %w", err)
+	}
+	return checkouts, nil
+}
+
+// LastWebhookEventTime returns when the most recent Trustap webhook for one
+// of the merchant's transactions arrived (zero time when none).
+func (s *Store) LastWebhookEventTime(merchantID string) (time.Time, error) {
+	type row struct{ Last time.Time }
+	var r row
+	err := s.db.Model(&WebhookEvent{}).
+		Select("max(webhook_events.created_at) as last").
+		Joins("JOIN checkouts ON checkouts.transaction_id = webhook_events.transaction_id").
+		Where("checkouts.merchant_id = ?", merchantID).
+		Scan(&r).Error
+	if err != nil {
+		return time.Time{}, fmt.Errorf("couldn't query last webhook event: %w", err)
+	}
+	return r.Last, nil
+}
+
+// PaymentsSummary aggregates paid checkout volume for the connection card.
+func (s *Store) PaymentsSummary(merchantID string) (paidCount int, revenueMinor int, err error) {
+	type row struct {
+		Count   int
+		Revenue int
+	}
+	var r row
+	err = s.db.Model(&Checkout{}).
+		Select("count(*) as count, coalesce(sum(price_minor), 0) as revenue").
+		Where("merchant_id = ? AND status = ?", merchantID, StatusPaid).
+		Scan(&r).Error
+	if err != nil {
+		return 0, 0, fmt.Errorf("couldn't summarise payments: %w", err)
+	}
+	return r.Count, r.Revenue, nil
 }

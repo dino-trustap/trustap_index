@@ -4,6 +4,7 @@ go 1.24.3
 
 require (
 	4d63.com/optional v0.2.0
+	github.com/coreos/go-oidc v2.4.0+incompatible
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jinzhu/gorm v1.9.16
 	github.com/julienschmidt/httprouter v1.3.0
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	github.com/coreos/go-oidc v2.4.0+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/handlers v1.5.2 // indirect

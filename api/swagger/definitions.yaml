@@ -211,3 +211,15 @@ definitions:
   ProductFeed:
     type: object
     additionalProperties: true
+
+  DashboardConfig:
+    type: object
+    additionalProperties: true
+
+  MerchantList:
+    type: object
+    additionalProperties: true
+
+  MerchantOverview:
+    type: object
+    additionalProperties: true

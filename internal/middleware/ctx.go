@@ -24,6 +24,11 @@ type Context struct {
 	Trustap       *trustap.Client
 	Merchants     map[string]Merchant
 	PublicBaseURL string
+
+	// Keycloak SSO settings for the merchant dashboard SPA (empty when SSO
+	// is not configured; the dashboard then runs without login).
+	KeycloakAuthority string
+	KeycloakClientID  string
 }
 
 // MiddlewareContext is used by the middleware chain and holds both

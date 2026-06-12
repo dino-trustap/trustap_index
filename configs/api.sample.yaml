@@ -26,3 +26,10 @@ merchants:
     name: "Demo Merchant"
     trustap_api_key: ""
     trustap_sub: ""
+
+# Merchant dashboard SSO (Trustap Keycloak). Leave empty to run the
+# dashboard without login (dev mode). The client must be PUBLIC (PKCE) and
+# whitelist {public_base_url}/dashboard/openid/auth as a redirect URI.
+dashboard:
+  keycloak_authority: ""   # e.g. https://sso.trustap.com/auth/realms/trustap-stage
+  keycloak_client_id: ""

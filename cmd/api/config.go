@@ -17,6 +17,7 @@ type config struct {
 
 	Database  databaseConfig   `yaml:"database"`
 	Trustap   trustapConfig    `yaml:"trustap"`
+	Dashboard dashboardConfig  `yaml:"dashboard"`
 	Merchants []merchantConfig `yaml:"merchants"`
 }
 
@@ -44,6 +45,15 @@ type trustapConfig struct {
 	// same pair is entered in the Trustap internal dashboard.
 	WebhookUser     string `yaml:"webhook_user"`
 	WebhookPassword string `yaml:"webhook_password"`
+}
+
+type dashboardConfig struct {
+	// KeycloakAuthority is the OIDC issuer for dashboard SSO, e.g.
+	// https://sso.trustap.com/auth/realms/trustap-stage. Empty disables
+	// dashboard login (dev mode).
+	KeycloakAuthority string `yaml:"keycloak_authority"`
+	// KeycloakClientID is the public (PKCE) client the SPA logs in with.
+	KeycloakClientID string `yaml:"keycloak_client_id"`
 }
 
 type merchantConfig struct {

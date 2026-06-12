@@ -296,3 +296,55 @@ paths:
         context: core
         meta:
           authorised_roles: []
+
+  /dashboard/config:
+    get:
+      operationId: dashboardConfig
+      summary: Dashboard bootstrap config (public; tells the SPA how to authenticate)
+      responses:
+        200:
+          description: Dashboard configuration
+          schema:
+            $ref: "#/definitions/DashboardConfig"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /dashboard/merchants:
+    get:
+      operationId: dashboardMerchants
+      summary: Merchants visible in the dashboard switcher
+      responses:
+        200:
+          description: Merchant list
+          schema:
+            $ref: "#/definitions/MerchantList"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /dashboard/merchants/{merchant_id}/overview:
+    get:
+      operationId: dashboardOverview
+      summary: Everything the merchant dashboard shows for one merchant
+      description: |
+        Agent connection statuses (per-surface last fetch and 24h hits),
+        catalog health (per-product issues and per-agent readiness), store
+        connection status (Trustap credentials, webhooks, store sync), and
+        recent checkouts.
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Merchant overview
+          schema:
+            $ref: "#/definitions/MerchantOverview"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []

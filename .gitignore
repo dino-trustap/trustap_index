@@ -42,3 +42,4 @@ Thumbs.db
 
 # real credentials live here; only the sample is tracked
 configs/api.yaml
+frontend/node_modules/
