@@ -574,3 +574,41 @@ th.num { text-align: right; }
 
 .ok-text { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--green); font-size: 0.78rem; font-weight: 500; }
 .ok-text svg { width: 11px; height: 11px; }
+
+/* ---------- v3.2 charts ---------- */
+
+.chart-wrap { padding: 0.7rem 0.9rem 0.4rem; }
+.areachart { width: 100%; height: auto; display: block; cursor: crosshair; }
+.grid-line { stroke: var(--line-soft); stroke-width: 1; }
+.grid-base { stroke: var(--line); stroke-width: 1; }
+.axis-label { font-size: 10px; fill: var(--text-3); font-family: "Inter", sans-serif; }
+.hover-line { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+.tip-box { fill: #1a1f36; opacity: 0.94; }
+.tip-value { font-size: 12px; font-weight: 600; fill: #fff; font-family: "Inter", sans-serif; }
+.tip-label { font-size: 10px; fill: #b6c0cd; font-family: "Inter", sans-serif; }
+
+.seg {
+  display: inline-flex;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 2px;
+}
+.seg button {
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-2);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  padding: 0.28rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.seg button.on {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}

@@ -219,14 +219,12 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
 
 /* ---------------- charts ---------------- */
 
-function Bars({ data, height = 30, color = "var(--primary)" }) {
+function Bars({ data, height = 30, barWidth = 7, gap = 3, color = "var(--primary)" }) {
   const max = Math.max(...data, 1);
-  const w = 7;
-  const gap = 3;
   return (
     <svg
       className="sparkbars"
-      width={data.length * (w + gap) - gap}
+      width={data.length * (barWidth + gap) - gap}
       height={height}
       role="img"
       aria-label="activity over the last 24 hours"
@@ -236,9 +234,9 @@ function Bars({ data, height = 30, color = "var(--primary)" }) {
         return (
           <rect
             key={i}
-            x={i * (w + gap)}
+            x={i * (barWidth + gap)}
             y={height - h}
-            width={w}
+            width={barWidth}
             height={h}
             rx="1.5"
             fill={v === 0 ? "var(--line)" : color}
@@ -251,26 +249,97 @@ function Bars({ data, height = 30, color = "var(--primary)" }) {
   );
 }
 
-function Trend({ data, width = 120, height = 34 }) {
+function AreaChart({ data, labels, height = 200, format }) {
+  const [hover, setHover] = useState(null);
+  const W = 760;
+  const pad = { t: 16, r: 12, b: 26, l: 12 };
+  const innerW = W - pad.l - pad.r;
+  const innerH = height - pad.t - pad.b;
   const max = Math.max(...data, 1);
-  const stepX = width / Math.max(data.length - 1, 1);
-  const points = data.map((v, i) => [i * stepX, height - 3 - (v / max) * (height - 8)]);
-  const line = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const area = `0,${height} ${line} ${width},${height}`;
+  const stepX = innerW / Math.max(data.length - 1, 1);
+  const pts = data.map((v, i) => [pad.l + i * stepX, pad.t + innerH - (v / max) * innerH]);
+
+  let line = "";
+  pts.forEach(([x, y], i) => {
+    if (i === 0) { line = `M${x},${y}`; return; }
+    const [px, py] = pts[i - 1];
+    const cx = (px + x) / 2;
+    line += ` C${cx},${py} ${cx},${y} ${x},${y}`;
+  });
+  const baseline = pad.t + innerH;
+  const area = `${line} L${pts[pts.length - 1][0]},${baseline} L${pts[0][0]},${baseline} Z`;
+
+  const onMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * W;
+    const idx = Math.min(data.length - 1, Math.max(0, Math.round((x - pad.l) / stepX)));
+    setHover(idx);
+  };
+
+  const h = hover;
+  const tipW = 120;
+  const tipX = h == null ? 0 : Math.min(Math.max(pts[h][0] - tipW / 2, pad.l), W - tipW - pad.r);
+
   return (
-    <svg className="trendline" width={width} height={height} role="img" aria-label="7 day trend">
-      <polygon points={area} fill="var(--primary-soft)" />
-      <polyline points={line} fill="none" stroke="var(--primary)" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
-      {data.some((v) => v > 0) && (
-        <circle cx={points[points.length - 1][0]} cy={points[points.length - 1][1]} r="2.4" fill="var(--primary)" />
+    <svg
+      className="areachart"
+      viewBox={`0 0 ${W} ${height}`}
+      preserveAspectRatio="none"
+      onMouseMove={onMove}
+      onMouseLeave={() => setHover(null)}
+      role="img"
+      aria-label="chart"
+    >
+      <defs>
+        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.01" />
+        </linearGradient>
+      </defs>
+
+      {[0.25, 0.5, 0.75].map((f) => (
+        <line
+          key={f}
+          x1={pad.l} x2={W - pad.r}
+          y1={pad.t + innerH * f} y2={pad.t + innerH * f}
+          className="grid-line"
+        />
+      ))}
+      <line x1={pad.l} x2={W - pad.r} y1={baseline} y2={baseline} className="grid-base" />
+
+      <path d={area} fill="url(#areaFill)" />
+      <path d={line} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+
+      {labels.map((l, i) =>
+        l ? (
+          <text key={i} x={pts[i][0]} y={height - 8} textAnchor="middle" className="axis-label">{l}</text>
+        ) : null
+      )}
+
+      {h != null && (
+        <g>
+          <line x1={pts[h][0]} x2={pts[h][0]} y1={pad.t} y2={baseline} className="hover-line" />
+          <circle cx={pts[h][0]} cy={pts[h][1]} r="4" fill="var(--surface)" stroke="var(--primary)" strokeWidth="2" />
+          <g transform={`translate(${tipX},${Math.max(pts[h][1] - 44, 2)})`}>
+            <rect width={tipW} height="34" rx="6" className="tip-box" />
+            <text x={tipW / 2} y="14" textAnchor="middle" className="tip-value">{format(data[h])}</text>
+            <text x={tipW / 2} y="27" textAnchor="middle" className="tip-label">{labels[h] || hoverLabel(labels, h)}</text>
+          </g>
+        </g>
       )}
     </svg>
   );
 }
 
+function hoverLabel(labels, idx) {
+  for (let i = idx; i >= 0; i--) if (labels[i]) return labels[i];
+  return "";
+}
+
 /* ---------------- overview ---------------- */
 
 function OverviewPage({ overview, navigate }) {
+  const [mode, setMode] = useState("activity");
   const summary = overview.catalog_health?.summary;
   const connection = overview.connection;
   const agents = overview.agents || [];
@@ -279,7 +348,23 @@ function OverviewPage({ overview, navigate }) {
   const orders = (overview.recent_checkouts || []).slice(0, 5);
   const fetches24h = agents.reduce((acc, a) => acc + (a.hits_24h || 0), 0);
   const activeAgents = agents.filter((a) => a.status === "active").length;
+
+  const totalActivity = (agents[0]?.activity || []).map((_, i) =>
+    agents.reduce((acc, a) => acc + ((a.activity || [])[i] || 0), 0)
+  );
+  const activityLabels = totalActivity.map((_, i) => {
+    if (i === totalActivity.length - 1) return "now";
+    const back = totalActivity.length - 1 - i;
+    return back % 6 === 0 ? `${back}h ago` : "";
+  });
+
   const trend = connection?.payments?.trend || [];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const trendLabels = trend.map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (trend.length - 1 - i));
+    return i === trend.length - 1 ? "Today" : dayNames[d.getDay()];
+  });
 
   return (
     <>
@@ -287,9 +372,7 @@ function OverviewPage({ overview, navigate }) {
         <div className="card stat">
           <div className="stat-label">Products live</div>
           <div className="stat-value">{summary?.total ?? 0}</div>
-          <div className="stat-context">
-            {summary?.ready_all ?? 0} fully agent ready
-          </div>
+          <div className="stat-context">{summary?.ready_all ?? 0} fully agent ready</div>
         </div>
         <div className="card stat">
           <div className="stat-label">Agent fetches · 24h</div>
@@ -302,14 +385,28 @@ function OverviewPage({ overview, navigate }) {
           <div className="stat-context">settled via Trustap</div>
         </div>
         <div className="card stat">
-          <div className="stat-label">Revenue · 7d</div>
-          <div className="stat-row-inline">
-            <div className="stat-value stat-accent">{money(connection?.payments?.revenue_minor ?? 0, "eur")}</div>
-            <Trend data={trend} width={86} height={30} />
-          </div>
+          <div className="stat-label">Revenue</div>
+          <div className="stat-value stat-accent">{money(connection?.payments?.revenue_minor ?? 0, "eur")}</div>
           <div className="stat-context">all time, paid checkouts</div>
         </div>
       </section>
+
+      <div className="card card-flush" style={{ marginTop: "0.9rem" }}>
+        <div className="card-head">
+          <h2>{mode === "activity" ? "Agent fetches" : "Paid revenue"}</h2>
+          <div className="seg">
+            <button className={mode === "activity" ? "on" : ""} onClick={() => setMode("activity")}>24h fetches</button>
+            <button className={mode === "revenue" ? "on" : ""} onClick={() => setMode("revenue")}>7d revenue</button>
+          </div>
+        </div>
+        <div className="chart-wrap">
+          {mode === "activity" ? (
+            <AreaChart data={totalActivity} labels={activityLabels} format={(v) => `${v} fetch${v === 1 ? "" : "es"}`} />
+          ) : (
+            <AreaChart data={trend} labels={trendLabels} format={(v) => money(v, "eur")} />
+          )}
+        </div>
+      </div>
 
       <div className="grid-2">
         <div className="card card-flush">
@@ -324,7 +421,7 @@ function OverviewPage({ overview, navigate }) {
                 <div className="list-row" key={a.key}>
                   <StatusDot status={a.status} />
                   <span className="grow strong">{m.label}</span>
-                  <Bars data={a.activity || []} height={20} />
+                  <Bars data={a.activity || []} height={20} barWidth={4} gap={2} />
                   <span className="dim w-72">{a.hits_24h} · {timeAgo(a.last_fetch)}</span>
                 </div>
               );
@@ -405,7 +502,7 @@ function AgentCard({ agent }) {
       </div>
       <div className="card-body">
         <div className="agent-chart">
-          <Bars data={agent.activity || []} height={34} />
+          <Bars data={agent.activity || []} height={48} barWidth={9} gap={3} />
           <div className="agent-chart-meta">
             <span><strong>{agent.hits_24h}</strong> fetches · 24h</span>
             <span>last {timeAgo(agent.last_fetch)}</span>

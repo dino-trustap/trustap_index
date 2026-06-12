@@ -110,9 +110,9 @@ func (api *API) agentStatuses(ctx *middleware.Context, merchantID string, status
 
 	agents := make([]any, 0, len(agentSurfaces))
 	for _, agent := range agentSurfaces {
-		activity, err := ctx.Store.ActivityBuckets(merchantID, agent.Surfaces, 12, 2)
+		activity, err := ctx.Store.ActivityBuckets(merchantID, agent.Surfaces, 24, 1)
 		if err != nil {
-			activity = make([]int, 12)
+			activity = make([]int, 24)
 		}
 		var lastFetch *time.Time
 		hits24h := 0

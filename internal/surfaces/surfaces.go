@@ -185,6 +185,65 @@ func (h *Handler) productPage(w http.ResponseWriter, merchantID, productID strin
 		skuHTML = fmt.Sprintf("<p>SKU: %s</p>", html.EscapeString(p.SKU))
 	}
 
+	buyHTML := ""
+	if p.Quantity > 0 {
+		buyHTML = fmt.Sprintf(`<div class="buy">
+<h3>Buy now</h3>
+<form id="buy-form">
+<div class="buy-grid">
+<input required type="email" id="b-email" placeholder="Email" autocomplete="email">
+<input required id="b-first" placeholder="First name" autocomplete="given-name">
+<input required id="b-last" placeholder="Last name" autocomplete="family-name">
+<select id="b-country" aria-label="Country">
+<option value="IE">Ireland</option><option value="GB">United Kingdom</option>
+<option value="DE">Germany</option><option value="FR">France</option>
+<option value="HR">Croatia</option><option value="NL">Netherlands</option>
+<option value="ES">Spain</option><option value="IT">Italy</option>
+<option value="US">United States</option>
+</select>
+<input type="number" id="b-qty" min="1" max="%d" value="1" aria-label="Quantity">
+</div>
+<button type="submit" class="buy-btn" id="buy-btn">Buy now &middot; <span id="buy-total">%s</span></button>
+<p id="buy-error" class="buy-error" hidden></p>
+<p class="buy-note">Secure payment with buyer protection by Trustap.</p>
+</form>
+</div>
+<script>
+(function(){
+var unit=%d, cur=%q, maxQ=%d;
+var qty=document.getElementById('b-qty'), total=document.getElementById('buy-total');
+var btn=document.getElementById('buy-btn'), err=document.getElementById('buy-error');
+function fmt(m){return (m/100).toFixed(2)+' '+cur.toUpperCase();}
+function current(){return Math.min(maxQ, Math.max(1, parseInt(qty.value||'1',10)));}
+qty.addEventListener('input', function(){ total.textContent = fmt(unit*current()); });
+document.getElementById('buy-form').addEventListener('submit', function(ev){
+ev.preventDefault();
+btn.disabled = true; btn.textContent = 'Preparing secure payment...'; err.hidden = true;
+fetch('/api/checkouts', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+merchant_id: %q,
+product_id: %q,
+quantity: current(),
+buyer_email: document.getElementById('b-email').value,
+buyer_first_name: document.getElementById('b-first').value,
+buyer_last_name: document.getElementById('b-last').value,
+buyer_country_code: document.getElementById('b-country').value
+})}).then(function(r){ return r.json().then(function(d){ return {ok: r.ok, d: d}; }); })
+.then(function(res){
+if (res.ok && res.d.pay_url) { location.href = res.d.pay_url; return; }
+err.textContent = (res.d && res.d.message) || 'Could not start checkout.';
+err.hidden = false; btn.disabled = false;
+btn.innerHTML = 'Buy now &middot; ' + fmt(unit*current());
+}).catch(function(){
+err.textContent = 'Network error, please try again.';
+err.hidden = false; btn.disabled = false;
+btn.innerHTML = 'Buy now &middot; ' + fmt(unit*current());
+});
+});
+})();
+</script>`,
+			p.Quantity, price(p), p.PriceMinor, p.Currency, p.Quantity, merchantID, p.ID)
+	}
+
 	body := fmt.Sprintf(
 		`<script type="application/ld+json">
 %s
@@ -194,6 +253,7 @@ func (h *Handler) productPage(w http.ResponseWriter, merchantID, productID strin
 %s
 <p>%s</p>
 <p><span class="price">%s</span> · %s</p>
+%s
 %s`,
 		jsonLD,
 		html.EscapeString(merchantID),
@@ -204,6 +264,7 @@ func (h *Handler) productPage(w http.ResponseWriter, merchantID, productID strin
 		html.EscapeString(price(p)),
 		stockLabel(p),
 		skuHTML,
+		buyHTML,
 	)
 	writePage(w, p.Title+" · "+name, body)
 }
@@ -277,6 +338,17 @@ a { color: #0a5c99; }
 .card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
 img { max-width: 100%%; border-radius: 8px; }
 footer { margin-top: 3rem; font-size: 0.85rem; color: #666; }
+.buy { border: 1px solid #e3e8ee; border-radius: 10px; padding: 1.1rem 1.2rem; margin-top: 1.6rem; background: #fafbfc; }
+.buy h3 { margin: 0 0 0.8rem; font-size: 1rem; }
+.buy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 0.8rem; }
+.buy-grid input[type=email] { grid-column: 1 / -1; }
+.buy-grid input, .buy-grid select { font: inherit; padding: 0.55rem 0.7rem; border: 1px solid #d5dbe3; border-radius: 7px; background: #fff; }
+.buy-grid input:focus, .buy-grid select:focus { outline: none; border-color: #2949ce; box-shadow: 0 0 0 3px #eef2ff; }
+.buy-btn { font: inherit; font-weight: 600; width: 100%; background: #2949ce; color: #fff; border: none; border-radius: 8px; padding: 0.7rem 1rem; cursor: pointer; }
+.buy-btn:hover { background: #1f3cab; }
+.buy-btn:disabled { opacity: 0.7; cursor: wait; }
+.buy-error { color: #cd3d64; font-size: 0.85rem; }
+.buy-note { color: #8792a2; font-size: 0.78rem; margin: 0.6rem 0 0; }
 </style>
 </head>
 <body>
