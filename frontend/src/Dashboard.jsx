@@ -626,56 +626,122 @@ function CatalogPage({ health }) {
 
 /* ---------------- connections ---------------- */
 
+const STORE_CONNECTORS = [
+  { key: "shopify", name: "Shopify", mono: "S", color: "#95bf47", sub: "Catalog import and two-way inventory sync" },
+  { key: "woocommerce", name: "WooCommerce", mono: "W", color: "#7f54b3", sub: "WordPress storefronts" },
+  { key: "bigcommerce", name: "BigCommerce", mono: "B", color: "#34313f", sub: "Enterprise storefronts" },
+  { key: "magento", name: "Adobe Commerce", mono: "M", color: "#ee672f", sub: "Magento catalogs" },
+];
+
+const SHIPPING_PROVIDERS = [
+  { key: "wfd", name: "Worry Free Delivery", img: "/dashboard/wfd.svg", sub: "Door-to-door delivery with buyer protection", badge: "By Trustap" },
+  { key: "shippo", name: "Shippo", mono: "Sh", color: "#0aa66d", sub: "Multi-carrier rates and labels", badge: "Supported via Trustap API" },
+  { key: "paket24", name: "Paket24", img: "/dashboard/paket24.svg", sub: "Croatian parcel delivery" },
+  { key: "dhl", name: "DHL", mono: "DHL", color: "#ffcc00", text: "#d40511", sub: "Express and parcel" },
+  { key: "gls", name: "GLS", mono: "GLS", color: "#002664", sub: "European parcel network" },
+  { key: "dpd", name: "DPD", mono: "DPD", color: "#dc0032", sub: "Parcel delivery" },
+  { key: "ups", name: "UPS", mono: "UPS", color: "#351c15", text: "#ffb500", sub: "Global shipping" },
+  { key: "posta_hr", name: "Hrvatska po\u0161ta", mono: "HP", color: "#ffd500", text: "#1a1f36", sub: "Croatian postal service" },
+];
+
+function IntegrationTile({ item }) {
+  return (
+    <div className="tile">
+      {item.img ? (
+        <img className="tile-logo-img" src={item.img} alt={item.name} />
+      ) : (
+        <span className="tile-logo" style={{ background: item.color, color: item.text || "#fff" }}>
+          {item.mono}
+        </span>
+      )}
+      <div className="tile-text">
+        <span className="tile-name">
+          {item.name}
+          {item.badge && <span className="tile-badge">{item.badge}</span>}
+        </span>
+        <span className="tile-sub">{item.sub}</span>
+      </div>
+      <button className="btn btn-ghost btn-small tile-connect" disabled title="Integration coming soon">
+        Connect
+      </button>
+    </div>
+  );
+}
+
 function ConnectionsPage({ connection }) {
   return (
-    <div className="conn-grid">
-      <div className="card card-flush">
-        <div className="card-head">
-          <h2>Trustap payments</h2>
-          <StatusDot status={connection?.trustap?.connected ? "active" : "waiting"} withLabel
-            labels={{ active: "Connected", waiting: "Not connected" }} />
+    <>
+      <div className="conn-grid">
+        <div className="card card-flush">
+          <div className="card-head">
+            <h2>Trustap payments</h2>
+            <StatusDot status={connection?.trustap?.connected ? "active" : "waiting"} withLabel
+              labels={{ active: "Connected", waiting: "Not connected" }} />
+          </div>
+          <div className="card-body">
+            <p className="conn-detail">
+              {connection?.trustap?.connected
+                ? "Checkouts settle through your Trustap account with buyer protection on every order."
+                : "Add your Trustap API credentials to start selling."}
+            </p>
+          </div>
+          <div className="card-foot">Merchant of record stays with you; Trustap handles the payment flow.</div>
         </div>
-        <div className="card-body">
-          <p className="conn-detail">
-            {connection?.trustap?.connected
-              ? "Checkouts settle through your Trustap account with buyer protection on every order."
-              : "Add your Trustap API credentials to start selling."}
-          </p>
+
+        <div className="card card-flush">
+          <div className="card-head">
+            <h2>Payment notifications</h2>
+            <StatusDot status={connection?.webhooks?.last_event ? "active" : "waiting"} withLabel
+              labels={{ active: "Receiving", waiting: "No events yet" }} />
+          </div>
+          <div className="card-body">
+            <p className="conn-detail">
+              Trustap notifies the Index when buyers pay; orders and stock update automatically.
+            </p>
+          </div>
+          <div className="card-foot">
+            {connection?.webhooks?.last_event
+              ? `Last event ${timeAgo(connection.webhooks.last_event)}`
+              : "Waiting for the first webhook from Trustap"}
+          </div>
         </div>
-        <div className="card-foot">Merchant of record stays with you; Trustap handles the payment flow.</div>
+
+        <div className="card card-flush">
+          <div className="card-head">
+            <h2>Store sync</h2>
+            <StatusDot status={connection?.store_sync?.status === "connected" ? "active" : "waiting"} withLabel
+              labels={{ active: "Synced", waiting: "Not connected" }} />
+          </div>
+          <div className="card-body">
+            <p className="conn-detail">{connection?.store_sync?.note}</p>
+          </div>
+          <div className="card-foot">Two-way inventory sync arrives with the store connector.</div>
+        </div>
       </div>
 
-      <div className="card card-flush">
+      <div className="card card-flush" style={{ marginTop: "1.2rem" }}>
         <div className="card-head">
-          <h2>Payment notifications</h2>
-          <StatusDot status={connection?.webhooks?.last_event ? "active" : "waiting"} withLabel
-            labels={{ active: "Receiving", waiting: "No events yet" }} />
+          <h2>Store platforms</h2>
+          <span className="head-hint">Connect your store to import the catalog and keep inventory in sync</span>
         </div>
-        <div className="card-body">
-          <p className="conn-detail">
-            Trustap notifies the Index when buyers pay; orders and stock update automatically.
-          </p>
+        <div className="tile-grid">
+          {STORE_CONNECTORS.map((c) => <IntegrationTile key={c.key} item={c} />)}
+        </div>
+      </div>
+
+      <div className="card card-flush" style={{ marginTop: "0.9rem" }}>
+        <div className="card-head">
+          <h2>Shipping providers</h2>
+          <span className="head-hint">Offer carrier rates and tracking on Index orders</span>
+        </div>
+        <div className="tile-grid">
+          {SHIPPING_PROVIDERS.map((c) => <IntegrationTile key={c.key} item={c} />)}
         </div>
         <div className="card-foot">
-          {connection?.webhooks?.last_event
-            ? `Last event ${timeAgo(connection.webhooks.last_event)}`
-            : "Waiting for the first webhook from Trustap"}
+          Missing a carrier you use? <a className="foot-link" href="mailto:dino@trustap.com?subject=Trustap%20Index%20integration%20request">Request an integration</a>
         </div>
       </div>
-
-      <div className="card card-flush">
-        <div className="card-head">
-          <h2>Store sync</h2>
-          <StatusDot status={connection?.store_sync?.status === "connected" ? "active" : "waiting"} withLabel
-            labels={{ active: "Synced", waiting: "Not connected" }} />
-        </div>
-        <div className="card-body">
-          <p className="conn-detail">{connection?.store_sync?.note}</p>
-          <button className="btn btn-disabled btn-small" disabled>Connect your store (coming soon)</button>
-        </div>
-        <div className="card-foot">Two-way inventory sync arrives with the store connector.</div>
-      </div>
-    </div>
+    </>
   );
 }
 

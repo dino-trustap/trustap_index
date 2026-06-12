@@ -612,3 +612,58 @@ th.num { text-align: right; }
   color: var(--text);
   box-shadow: var(--shadow-sm);
 }
+
+/* ---------- v3.3 integration directory ---------- */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
+  gap: 0;
+  padding: 0.25rem 0;
+}
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1.1rem;
+  border-bottom: 1px solid var(--line-soft);
+  transition: background 0.1s;
+}
+.tile:hover { background: #fafbfd; }
+.tile-logo {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(26, 31, 54, 0.06);
+}
+.tile-logo-img {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 3px;
+  flex-shrink: 0;
+}
+.tile-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.tile-name { font-weight: 600; font-size: 0.86rem; display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.tile-badge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 4px;
+  padding: 0.08rem 0.4rem;
+  white-space: nowrap;
+}
+.tile-sub { color: var(--text-3); font-size: 0.74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile-connect { flex-shrink: 0; }
+.head-hint { color: var(--text-3); font-size: 0.74rem; }
+.foot-link { color: var(--primary); font-weight: 500; text-decoration: none; }
+.foot-link:hover { text-decoration: underline; }
