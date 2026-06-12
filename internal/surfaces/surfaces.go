@@ -79,8 +79,10 @@ func (h *Handler) gmcCSV(w http.ResponseWriter, merchantID string) {
 
 	writer := csv.NewWriter(w)
 	_ = writer.Write([]string{
-		"id", "title", "description", "link", "image_link", "condition",
-		"availability", "price", "brand", "gtin", "mpn", "identifier_exists", "product_type",
+		"id", "title", "description", "link", "image_link", "additional_image_link",
+		"condition", "availability", "price", "sale_price", "brand", "gtin", "mpn",
+		"identifier_exists", "product_type", "google_product_category",
+		"color", "size", "material", "shipping_weight",
 	})
 	for i := range products {
 		p := &products[i]
@@ -96,20 +98,43 @@ func (h *Handler) gmcCSV(w http.ResponseWriter, merchantID string) {
 		if description == "" {
 			description = p.Title
 		}
+		condition := p.Condition
+		if condition == "" {
+			condition = "new"
+		}
+		salePrice := ""
+		if p.SalePriceMinor > 0 {
+			salePrice = fmt.Sprintf("%.2f %s", float64(p.SalePriceMinor)/100, strings.ToUpper(p.Currency))
+		}
+		additionalImage := ""
+		if parts := strings.SplitN(p.AdditionalImages, ",", 2); len(parts) > 0 {
+			additionalImage = strings.TrimSpace(parts[0])
+		}
+		weight := ""
+		if p.WeightGrams > 0 {
+			weight = fmt.Sprintf("%d g", p.WeightGrams)
+		}
 		_ = writer.Write([]string{
 			p.ID,
 			p.Title,
 			description,
 			h.productURL(p),
 			p.ImageURL,
-			"new",
+			additionalImage,
+			condition,
 			availability,
 			price(p),
+			salePrice,
 			p.Brand,
 			p.GTIN,
 			p.MPN,
 			identifierExists,
 			p.Category,
+			p.GoogleCategory,
+			p.Color,
+			p.Size,
+			p.Material,
+			weight,
 		})
 	}
 	writer.Flush()
@@ -302,6 +327,35 @@ func (h *Handler) productJSONLD(p *store.Product, merchantName string) map[strin
 	}
 	if p.MPN != "" {
 		data["mpn"] = p.MPN
+	}
+	condition := map[string]string{
+		"refurbished": "https://schema.org/RefurbishedCondition",
+		"used":        "https://schema.org/UsedCondition",
+	}[p.Condition]
+	if condition == "" {
+		condition = "https://schema.org/NewCondition"
+	}
+	data["itemCondition"] = condition
+	if p.Color != "" {
+		data["color"] = p.Color
+	}
+	if p.Size != "" {
+		data["size"] = p.Size
+	}
+	if p.Material != "" {
+		data["material"] = p.Material
+	}
+	if p.WeightGrams > 0 {
+		data["weight"] = map[string]any{"@type": "QuantitativeValue", "value": p.WeightGrams, "unitCode": "GRM"}
+	}
+	if imgs := strings.Split(p.AdditionalImages, ","); p.AdditionalImages != "" {
+		all := []string{p.ImageURL}
+		for _, img := range imgs {
+			if trimmed := strings.TrimSpace(img); trimmed != "" {
+				all = append(all, trimmed)
+			}
+		}
+		data["image"] = all
 	}
 	return data
 }

@@ -128,6 +128,28 @@ definitions:
       quantity:
         type: integer
         description: Available stock
+      condition:
+        type: string
+        description: new | refurbished | used (defaults to new)
+      sale_price:
+        type: integer
+        description: Discounted price in smallest unit; omit when not on sale
+      additional_images:
+        type: string
+        description: Comma-separated extra image URLs
+      color:
+        type: string
+      size:
+        type: string
+      material:
+        type: string
+      weight_grams:
+        type: integer
+      google_category:
+        type: string
+        description: Google product taxonomy path, e.g. Electronics > Audio
+      video_url:
+        type: string
 
   UpdateProductRequest:
     type: object
@@ -154,6 +176,28 @@ definitions:
         type: string
       quantity:
         type: integer
+      condition:
+        type: string
+        description: new | refurbished | used (defaults to new)
+      sale_price:
+        type: integer
+        description: Discounted price in smallest unit; omit when not on sale
+      additional_images:
+        type: string
+        description: Comma-separated extra image URLs
+      color:
+        type: string
+      size:
+        type: string
+      material:
+        type: string
+      weight_grams:
+        type: integer
+      google_category:
+        type: string
+        description: Google product taxonomy path, e.g. Electronics > Audio
+      video_url:
+        type: string
 
   Product:
     type: object
@@ -193,6 +237,28 @@ definitions:
       quantity:
         type: integer
       status:
+        type: string
+      condition:
+        type: string
+        description: new | refurbished | used (defaults to new)
+      sale_price:
+        type: integer
+        description: Discounted price in smallest unit; omit when not on sale
+      additional_images:
+        type: string
+        description: Comma-separated extra image URLs
+      color:
+        type: string
+      size:
+        type: string
+      material:
+        type: string
+      weight_grams:
+        type: integer
+      google_category:
+        type: string
+        description: Google product taxonomy path, e.g. Electronics > Audio
+      video_url:
         type: string
       page_url:
         type: string

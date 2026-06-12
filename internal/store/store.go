@@ -49,8 +49,19 @@ type Product struct {
 	MPN         string `gorm:"size:100"`
 	Quantity    int
 	Status      string `gorm:"size:20;index"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+
+	// Extended feed attributes (GMC / ACP / schema.org vocabulary).
+	Condition        string `gorm:"size:20"` // new | refurbished | used
+	SalePriceMinor   int
+	AdditionalImages string `gorm:"size:4096"` // comma-separated URLs
+	Color            string `gorm:"size:60"`
+	Size             string `gorm:"size:60"`
+	Material         string `gorm:"size:60"`
+	WeightGrams      int
+	GoogleCategory   string `gorm:"size:200"` // Google product taxonomy path or id
+	VideoURL         string `gorm:"size:2048"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type Checkout struct {

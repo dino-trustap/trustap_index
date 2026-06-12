@@ -233,6 +233,16 @@ func catalogHealth(products []store.Product) map[string]any {
 			"status":      p.Status,
 			"issues":      issueList,
 			"readiness":   readiness,
+
+			"condition":         defaultCondition(p.Condition),
+			"sale_price":        p.SalePriceMinor,
+			"additional_images": p.AdditionalImages,
+			"color":             p.Color,
+			"size":              p.Size,
+			"material":          p.Material,
+			"weight_grams":      p.WeightGrams,
+			"google_category":   p.GoogleCategory,
+			"video_url":         p.VideoURL,
 		})
 	}
 

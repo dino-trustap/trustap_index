@@ -43,6 +43,16 @@ func (api *API) CreateProduct(ctx *middleware.Context, merchantID string, body *
 		MPN:         deref(body.Mpn),
 		Quantity:    body.Quantity,
 		Status:      store.ProductActive,
+
+		Condition:        defaultCondition(deref(body.Condition)),
+		SalePriceMinor:   derefInt(body.SalePrice),
+		AdditionalImages: deref(body.AdditionalImages),
+		Color:            deref(body.Color),
+		Size:             deref(body.Size),
+		Material:         deref(body.Material),
+		WeightGrams:      derefInt(body.WeightGrams),
+		GoogleCategory:   deref(body.GoogleCategory),
+		VideoURL:         deref(body.VideoUrl),
 	}
 	if err := ctx.Store.CreateProduct(product); err != nil {
 		return nil, err
@@ -122,6 +132,33 @@ func (api *API) UpdateProduct(ctx *middleware.Context, productID string, body *c
 	}
 	if body.Quantity != nil {
 		fields["quantity"] = *body.Quantity
+	}
+	if body.Condition != nil {
+		fields["condition"] = defaultCondition(*body.Condition)
+	}
+	if body.SalePrice != nil {
+		fields["sale_price_minor"] = *body.SalePrice
+	}
+	if body.AdditionalImages != nil {
+		fields["additional_images"] = *body.AdditionalImages
+	}
+	if body.Color != nil {
+		fields["color"] = *body.Color
+	}
+	if body.Size != nil {
+		fields["size"] = *body.Size
+	}
+	if body.Material != nil {
+		fields["material"] = *body.Material
+	}
+	if body.WeightGrams != nil {
+		fields["weight_grams"] = *body.WeightGrams
+	}
+	if body.GoogleCategory != nil {
+		fields["google_category"] = *body.GoogleCategory
+	}
+	if body.VideoUrl != nil {
+		fields["video_url"] = *body.VideoUrl
 	}
 
 	product, err := ctx.Store.UpdateProduct(productID, fields)
@@ -255,7 +292,7 @@ func (api *API) productFeed(ctx *middleware.Context, merchantID string) (*core.P
 		if p.Quantity <= 0 {
 			availability = "out_of_stock"
 		}
-		items = append(items, map[string]any{
+		item := map[string]any{
 			"id":                 p.ID,
 			"title":              p.Title,
 			"description":        p.Description,
@@ -269,7 +306,33 @@ func (api *API) productFeed(ctx *middleware.Context, merchantID string) (*core.P
 			"brand":              p.Brand,
 			"gtin":               p.GTIN,
 			"mpn":                p.MPN,
-		})
+			"condition":          defaultCondition(p.Condition),
+		}
+		if p.SalePriceMinor > 0 {
+			item["sale_price"] = fmt.Sprintf("%.2f %s", float64(p.SalePriceMinor)/100, strings.ToUpper(p.Currency))
+		}
+		if imgs := splitImages(p.AdditionalImages); len(imgs) > 0 {
+			item["additional_image_links"] = imgs
+		}
+		if p.Color != "" {
+			item["color"] = p.Color
+		}
+		if p.Size != "" {
+			item["size"] = p.Size
+		}
+		if p.Material != "" {
+			item["material"] = p.Material
+		}
+		if p.WeightGrams > 0 {
+			item["shipping_weight"] = fmt.Sprintf("%d g", p.WeightGrams)
+		}
+		if p.GoogleCategory != "" {
+			item["google_product_category"] = p.GoogleCategory
+		}
+		if p.VideoURL != "" {
+			item["video_link"] = p.VideoURL
+		}
+		items = append(items, item)
 	}
 
 	feed := core.ProductFeed{
@@ -326,7 +389,50 @@ func productToResponse(p *store.Product, base string) *core.Product {
 		Status:      p.Status,
 		PageUrl:     &pageURL,
 		CreatedAt:   &createdAt,
+
+		Condition:        optional(p.Condition),
+		SalePrice:        optionalInt(p.SalePriceMinor),
+		AdditionalImages: optional(p.AdditionalImages),
+		Color:            optional(p.Color),
+		Size:             optional(p.Size),
+		Material:         optional(p.Material),
+		WeightGrams:      optionalInt(p.WeightGrams),
+		GoogleCategory:   optional(p.GoogleCategory),
+		VideoUrl:         optional(p.VideoURL),
 	}
+}
+
+func defaultCondition(c string) string {
+	switch c {
+	case "refurbished", "used":
+		return c
+	default:
+		return "new"
+	}
+}
+
+func derefInt(v *int) int {
+	if v == nil {
+		return 0
+	}
+	return *v
+}
+
+func optionalInt(v int) *int {
+	if v == 0 {
+		return nil
+	}
+	return &v
+}
+
+func splitImages(csv string) []string {
+	var out []string
+	for _, part := range strings.Split(csv, ",") {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	return out
 }
 
 func productMap(p *store.Product, base string) map[string]any {

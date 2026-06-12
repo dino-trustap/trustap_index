@@ -566,6 +566,16 @@ const EDIT_FIELDS = [
   { key: "quantity", label: "Stock", issue: "out_of_stock", type: "number" },
 ];
 
+const RICH_FIELDS = [
+  { key: "google_category", label: "Google category", placeholder: "Electronics > Audio > Headphones" },
+  { key: "color", label: "Color", placeholder: "Black" },
+  { key: "size", label: "Size", placeholder: "M / 42 / 2m" },
+  { key: "material", label: "Material", placeholder: "Aluminium" },
+  { key: "weight_grams", label: "Weight (g)", type: "number" },
+  { key: "additional_images", label: "Extra image URLs", placeholder: "https://a.jpg, https://b.jpg" },
+  { key: "video_url", label: "Video URL", placeholder: "https://..." },
+];
+
 function ProductEditor({ product, onSaved, onClose }) {
   const issues = product.issues || [];
   const [values, setValues] = useState({
@@ -576,6 +586,15 @@ function ProductEditor({ product, onSaved, onClose }) {
     mpn: product.mpn || "",
     quantity: product.quantity ?? 0,
     description: product.description || "",
+    condition: product.condition || "new",
+    salePriceEur: product.sale_price > 0 ? (product.sale_price / 100).toFixed(2) : "",
+    google_category: product.google_category || "",
+    color: product.color || "",
+    size: product.size || "",
+    material: product.material || "",
+    weight_grams: product.weight_grams || "",
+    additional_images: product.additional_images || "",
+    video_url: product.video_url || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -585,6 +604,7 @@ function ProductEditor({ product, onSaved, onClose }) {
   const save = () => {
     setSaving(true);
     setError(null);
+    const salePrice = values.salePriceEur.trim() === "" ? 0 : Math.round(parseFloat(values.salePriceEur.replace(",", ".")) * 100);
     const body = {
       image_url: values.image_url,
       gtin: values.gtin,
@@ -593,6 +613,15 @@ function ProductEditor({ product, onSaved, onClose }) {
       mpn: values.mpn,
       description: values.description,
       quantity: Math.max(0, parseInt(values.quantity, 10) || 0),
+      condition: values.condition,
+      sale_price: Number.isFinite(salePrice) ? salePrice : 0,
+      google_category: values.google_category,
+      color: values.color,
+      size: values.size,
+      material: values.material,
+      weight_grams: Math.max(0, parseInt(values.weight_grams, 10) || 0),
+      additional_images: values.additional_images,
+      video_url: values.video_url,
     };
     fetch(`/api/products/${product.id}`, {
       method: "PUT",
@@ -649,6 +678,35 @@ function ProductEditor({ product, onSaved, onClose }) {
               <span className="field-hint">{ISSUE_HINTS.missing_description}</span>
             </label>
           </div>
+
+          <div className="editor-subhead">Rich listing data <span>improves ranking and unlocks category requirements (e.g. apparel needs color/size)</span></div>
+          <div className="editor-grid">
+            <label className="field">
+              <span className="field-label">Condition</span>
+              <select value={values.condition} onChange={(e) => set("condition", e.target.value)}>
+                <option value="new">New</option>
+                <option value="refurbished">Refurbished</option>
+                <option value="used">Used</option>
+              </select>
+            </label>
+            <label className="field">
+              <span className="field-label">Sale price (EUR)</span>
+              <input inputMode="decimal" value={values.salePriceEur} placeholder="leave empty if not on sale" onChange={(e) => set("salePriceEur", e.target.value)} />
+            </label>
+            {RICH_FIELDS.map((f) => (
+              <label key={f.key} className="field">
+                <span className="field-label">{f.label}</span>
+                <input
+                  type={f.type || "text"}
+                  value={values[f.key]}
+                  min={f.type === "number" ? 0 : undefined}
+                  placeholder={f.placeholder}
+                  onChange={(e) => set(f.key, e.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+
           {error && <div className="banner banner-error">{error}</div>}
           <div className="editor-actions">
             <button className="btn btn-ghost btn-small" onClick={onClose} disabled={saving}>Cancel</button>
