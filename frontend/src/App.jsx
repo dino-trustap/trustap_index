@@ -20,7 +20,7 @@ function SsoGate() {
   if (!auth.isAuthenticated) {
     return (
       <FullScreen
-        message="Sign in with your Trustap account to manage your Index presence."
+        message="Sign in with your Trustap account to manage your Index presence. Sessions are secured by Trustap SSO."
         action={() => auth.signinRedirect()}
         actionLabel="Sign in with Trustap"
         logo
@@ -40,7 +40,11 @@ function SsoGate() {
 function FullScreen({ message, action, actionLabel, logo }) {
   return (
     <div className="fullscreen">
-      {logo && <img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" />}
+      {logo && (
+        <div className="logo-plate">
+          <img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" />
+        </div>
+      )}
       <p>{message}</p>
       {action && (
         <button className="btn btn-primary" onClick={action}>

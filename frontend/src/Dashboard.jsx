@@ -1,10 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 const AGENTS_META = {
-  chatgpt: { short: "GPT", label: "ChatGPT", vendor: "OpenAI", hue: "#10a37f" },
-  copilot: { short: "CP", label: "Copilot", vendor: "Microsoft", hue: "#0078d4" },
-  google: { short: "G", label: "Google", vendor: "Gemini / AI Mode", hue: "#ea4335" },
-  perplexity: { short: "P", label: "Perplexity", vendor: "Comet / Shopping", hue: "#20808d" },
+  chatgpt: { short: "GPT", label: "ChatGPT", vendor: "OpenAI" },
+  copilot: { short: "CP", label: "Copilot", vendor: "Microsoft" },
+  google: { short: "G", label: "Google", vendor: "Gemini / AI Mode" },
+  perplexity: { short: "PX", label: "Perplexity", vendor: "Comet / Shopping" },
+};
+
+const ICONS = {
+  signal: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M2 13.5v-4M6 13.5v-7M10 13.5v-10M14 13.5v-5.5"/></svg>,
+  grid: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>,
+  link: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M6.5 9.5l3-3M5 11l-1.2 1.2a2.5 2.5 0 01-3.5-3.5L2.5 7M11 5l1.2-1.2a2.5 2.5 0 113.5 3.5L13.5 9" transform="translate(-1 0)"/></svg>,
+  receipt: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 2h10v12l-1.7-1.2L9.6 14l-1.6-1.2L6.4 14l-1.7-1.2L3 14z"/><path d="M5.5 5.5h5M5.5 8h5"/></svg>,
+  lock: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>,
 };
 
 const ISSUE_LABELS = {
@@ -40,18 +48,11 @@ function money(minor, currency) {
   return `${(minor / 100).toFixed(2)} ${(currency || "eur").toUpperCase()}`;
 }
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
-
 const NAV = [
-  { id: "agents", label: "Agent reach", icon: "◉" },
-  { id: "catalog", label: "Catalog health", icon: "▤" },
-  { id: "connections", label: "Connections", icon: "⇄" },
-  { id: "orders", label: "Orders", icon: "✓" },
+  { id: "agents", label: "Agent reach", icon: "signal" },
+  { id: "catalog", label: "Catalog health", icon: "grid" },
+  { id: "connections", label: "Connections", icon: "link" },
+  { id: "orders", label: "Orders", icon: "receipt" },
 ];
 
 export default function Dashboard({ token, userName, onLogout, devMode }) {
@@ -106,7 +107,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
   if (loading) {
     return (
       <div className="fullscreen">
-        <img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" />
+        <div className="logo-plate"><img src="/dashboard/trustap-logo.png" alt="Trustap" className="fullscreen-logo" /></div>
         <div className="loader" />
       </div>
     );
@@ -121,7 +122,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <img src="/dashboard/trustap-logo.png" alt="Trustap" className="sidebar-logo" />
+        <div className="logo-plate"><img src="/dashboard/trustap-logo.png" alt="Trustap" className="sidebar-logo" /></div>
         <div className="sidebar-product">INDEX</div>
 
         {merchants.length > 1 ? (
@@ -141,7 +142,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
         <nav className="sidebar-nav">
           {NAV.map((n) => (
             <a key={n.id} href={`#${n.id}`}>
-              <span className="nav-icon">{n.icon}</span>
+              <span className="nav-icon">{ICONS[n.icon]}</span>
               {n.label}
             </a>
           ))}
@@ -153,7 +154,10 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
           {onLogout && (
             <button className="btn btn-ghost btn-small" onClick={onLogout}>Log out</button>
           )}
-          <div className="sidebar-claim">Buyer-protected agentic commerce</div>
+          <div className="secure-note">
+            {ICONS.lock}
+            <span>Payments protected by Trustap buyer protection</span>
+          </div>
         </div>
       </aside>
 
@@ -164,11 +168,11 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
           <>
             <header className="hero">
               <div>
-                <h1>{greeting()}, {merchantName}</h1>
+                <h1>Overview</h1>
                 <p className="hero-sub">
-                  {activeAgents > 0
-                    ? `${activeAgents} of ${overview.agents.length} AI agents pulled your catalog in the last 24 hours.`
-                    : "Your catalog is live; waiting for the first agent fetch."}
+                  {merchantName} · {activeAgents > 0
+                    ? `${activeAgents} of ${overview.agents.length} AI agents pulled your catalog in the last 24 hours`
+                    : "catalog live, waiting for the first agent fetch"}
                 </p>
               </div>
               <div className="hero-side">
@@ -265,7 +269,7 @@ function Stat({ label, value, tone }) {
 }
 
 function AgentCard({ agent }) {
-  const meta = AGENTS_META[agent.key] || { short: "?", label: agent.name, vendor: "", hue: "#2949ce" };
+  const meta = AGENTS_META[agent.key] || { short: "?", label: agent.name, vendor: "" };
   const statusMeta = {
     active: { label: "Active", cls: "pill-green", hint: "Fetched your catalog in the last 24h", pulse: true },
     quiet: { label: "Quiet", cls: "pill-amber", hint: "Has fetched before, nothing in the last 24h" },
@@ -273,9 +277,9 @@ function AgentCard({ agent }) {
   }[agent.status] || { label: agent.status, cls: "pill-gray" };
 
   return (
-    <div className="card agent-card">
+    <div className={`card agent-card ${agent.status === "active" ? "is-active" : ""}`}>
       <div className="agent-head">
-        <span className="agent-avatar" style={{ background: meta.hue }}>{meta.short}</span>
+        <span className="agent-avatar">{meta.short}</span>
         <div className="agent-names">
           <span className="agent-name">{meta.label}</span>
           <span className="agent-vendor">{meta.vendor}</span>
@@ -313,10 +317,10 @@ function ReadinessRing({ ready, total }) {
   return (
     <div className="ring" title={`${ready} of ${total} products are fully ready for every agent`}>
       <svg viewBox="0 0 64 64" width="64" height="64">
-        <circle cx="32" cy="32" r={r} fill="none" stroke="#e3e8f4" strokeWidth="7" />
+        <circle cx="32" cy="32" r={r} fill="none" className="ring-track" strokeWidth="7" />
         <circle
           cx="32" cy="32" r={r} fill="none"
-          stroke={pct === 100 ? "#2da44e" : "#4d65ff"}
+          stroke={pct === 100 ? "#34d399" : "#4d65ff"}
           strokeWidth="7" strokeLinecap="round"
           strokeDasharray={`${(pct / 100) * c} ${c}`}
           transform="rotate(-90 32 32)"
