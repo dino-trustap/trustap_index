@@ -792,3 +792,81 @@ th {
   background: var(--green);
   box-shadow: 0 0 0 3px var(--green-bg);
 }
+
+/* ---------- v4.1 catalog editor + pager + toolbar ---------- */
+
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.8rem;
+}
+.pager-btns { display: flex; gap: 0.4rem; }
+
+.banner-ok { background: var(--green-bg); color: var(--green); border-color: #bfe6d6; }
+.banner-warn { background: var(--amber-bg); color: var(--amber); border-color: #f0d9b0; }
+
+.row-click { cursor: pointer; }
+.row-open { background: #fafbfd; }
+.row-open td { border-bottom-color: transparent; }
+
+.editor-row td { padding: 0; background: #fafbfd; }
+.editor {
+  padding: 0.9rem 1.1rem 1rem;
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem 0.9rem;
+}
+@media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr 1fr; } }
+.field { display: flex; flex-direction: column; gap: 0.25rem; }
+.field-wide { grid-column: 1 / -1; }
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.field-flag {
+  background: var(--amber-bg);
+  color: var(--amber);
+  border-radius: 3px;
+  padding: 0.04rem 0.3rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.field input, .field textarea {
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+.field input:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.field-missing input, .field-missing textarea { border-color: #ecc58a; background: #fffdf8; }
+.field-hint { color: var(--text-3); font-size: 0.7rem; line-height: 1.45; }
+.editor-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.9rem; }

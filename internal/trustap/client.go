@@ -232,3 +232,29 @@ func (c *Client) do(ctx context.Context, creds Credentials, trustapUser, method,
 	}
 	return nil
 }
+
+// AcceptDeposit captures the buyer's deposit on behalf of the seller. With
+// skip_remainder transactions the remainder is auto-skipped AFTER this call
+// commits, so confirm_handover must wait for status remainder_skipped (see
+// ConfirmHandover).
+func (c *Client) AcceptDeposit(ctx context.Context, creds Credentials, transactionID int) error {
+	err := c.do(ctx, creds, creds.Sub, http.MethodPost,
+		fmt.Sprintf("/p2p/transactions/%d/accept_deposit", transactionID), nil, nil)
+	if err != nil {
+		return fmt.Errorf("couldn't accept deposit: %w", err)
+	}
+	return nil
+}
+
+// ConfirmHandover confirms the seller handed the item over; after the
+// complaint window the funds release. Valid only once the transaction is in
+// remainder_skipped (calling earlier races the auto-skip and 400s with
+// remainder_required).
+func (c *Client) ConfirmHandover(ctx context.Context, creds Credentials, transactionID int) error {
+	err := c.do(ctx, creds, creds.Sub, http.MethodPost,
+		fmt.Sprintf("/p2p/transactions/%d/confirm_handover", transactionID), nil, nil)
+	if err != nil {
+		return fmt.Errorf("couldn't confirm handover: %w", err)
+	}
+	return nil
+}

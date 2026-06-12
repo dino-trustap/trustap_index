@@ -223,3 +223,11 @@ definitions:
   MerchantOverview:
     type: object
     additionalProperties: true
+
+  OrdersPage:
+    type: object
+    additionalProperties: true
+
+  FulfilResult:
+    type: object
+    additionalProperties: true

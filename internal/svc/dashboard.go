@@ -1,6 +1,7 @@
 package svc
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -217,14 +218,21 @@ func catalogHealth(products []store.Product) map[string]any {
 			issueList = append(issueList, iss)
 		}
 		items = append(items, map[string]any{
-			"id":        p.ID,
-			"title":     p.Title,
-			"price":     p.PriceMinor,
-			"currency":  p.Currency,
-			"quantity":  p.Quantity,
-			"status":    p.Status,
-			"issues":    issueList,
-			"readiness": readiness,
+			"id":          p.ID,
+			"title":       p.Title,
+			"description": p.Description,
+			"price":       p.PriceMinor,
+			"currency":    p.Currency,
+			"sku":         p.SKU,
+			"category":    p.Category,
+			"image_url":   p.ImageURL,
+			"brand":       p.Brand,
+			"gtin":        p.GTIN,
+			"mpn":         p.MPN,
+			"quantity":    p.Quantity,
+			"status":      p.Status,
+			"issues":      issueList,
+			"readiness":   readiness,
 		})
 	}
 
@@ -279,4 +287,150 @@ func recentCheckouts(checkouts []store.Checkout) []any {
 		})
 	}
 	return out
+}
+
+// DashboardOrders returns one page of orders with optional status filter and
+// description search, for catalogs with hundreds of orders.
+func (api *API) DashboardOrders(ctx *middleware.Context, merchantID string, query *core.DashboardOrdersQuery) (*core.OrdersPage, error) {
+	if ctx.Store == nil {
+		return nil, fmt.Errorf("service is not fully configured (database missing)")
+	}
+	if _, ok := ctx.Merchants[merchantID]; !ok {
+		return nil, swagger_rest.NotFound("merchant '%s' not found", merchantID)
+	}
+
+	limit, offset, status, q := 25, 0, "", ""
+	if query != nil {
+		if query.Limit != nil && *query.Limit > 0 && *query.Limit <= 100 {
+			limit = *query.Limit
+		}
+		if query.Offset != nil && *query.Offset > 0 {
+			offset = *query.Offset
+		}
+		if query.Status != nil {
+			status = *query.Status
+		}
+		if query.Search != nil {
+			q = *query.Search
+		}
+	}
+
+	checkouts, total, err := ctx.Store.ListCheckoutsPage(merchantID, status, q, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	page := core.OrdersPage{
+		"orders": recentCheckouts(checkouts),
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	}
+	return &page, nil
+}
+
+// FulfilOrder runs the p2p fulfilment sequence for a paid order:
+// accept_deposit -> wait for the remainder auto-skip -> confirm_handover.
+// Idempotent: re-running on an already fulfilled order reports its state.
+func (api *API) FulfilOrder(ctx *middleware.Context, merchantID, checkoutID string) (*core.FulfilResult, error) {
+	if ctx.Store == nil || ctx.Trustap == nil {
+		return nil, fmt.Errorf("service is not fully configured (database/trustap missing)")
+	}
+	merchant, ok := ctx.Merchants[merchantID]
+	if !ok {
+		return nil, swagger_rest.NotFound("merchant '%s' not found", merchantID)
+	}
+
+	checkout, err := ctx.Store.GetCheckout(checkoutID)
+	if err != nil {
+		return nil, err
+	}
+	if checkout == nil || checkout.MerchantID != merchantID {
+		return nil, swagger_rest.NotFound("order '%s' not found", checkoutID)
+	}
+
+	switch checkout.Status {
+	case store.StatusFulfilled, store.StatusReleased:
+		result := core.FulfilResult{"status": checkout.Status, "message": "order is already fulfilled"}
+		return &result, nil
+	case store.StatusPaid:
+		// proceed
+	default:
+		return nil, swagger_rest.BadRequest(
+			"not_fulfillable", "order is '%s'; only paid orders can be fulfilled", checkout.Status,
+		)
+	}
+
+	reqCtx := context.Background()
+	creds := merchant.Trustap
+
+	tx, err := ctx.Trustap.GetTransaction(reqCtx, creds, checkout.TransactionID)
+	if err != nil {
+		return nil, trustapToClientError("get_transaction", err)
+	}
+
+	// Step 1: capture the deposit when it hasn't been accepted yet.
+	if tx.Status == "deposit_paid" {
+		if err := ctx.Trustap.AcceptDeposit(reqCtx, creds, checkout.TransactionID); err != nil {
+			return nil, trustapToClientError("accept_deposit", err)
+		}
+	}
+
+	// Step 2: the remainder auto-skip commits asynchronously after
+	// accept_deposit; confirm_handover before that 400s with
+	// remainder_required (verified in shopify_plugin). Poll briefly.
+	confirmable := tx.Status == "remainder_skipped"
+	alreadyDone := tx.Status == "seller_handover_confirmed" || tx.Status == "funds_released"
+	if !confirmable && !alreadyDone {
+		for attempt := 0; attempt < 6; attempt++ {
+			time.Sleep(800 * time.Millisecond)
+			tx, err = ctx.Trustap.GetTransaction(reqCtx, creds, checkout.TransactionID)
+			if err != nil {
+				return nil, trustapToClientError("get_transaction", err)
+			}
+			if tx.Status == "remainder_skipped" {
+				confirmable = true
+				break
+			}
+			if tx.Status == "seller_handover_confirmed" || tx.Status == "funds_released" {
+				alreadyDone = true
+				break
+			}
+		}
+	}
+
+	// Step 3: confirm the handover.
+	if confirmable {
+		if err := ctx.Trustap.ConfirmHandover(reqCtx, creds, checkout.TransactionID); err != nil {
+			return nil, trustapToClientError("confirm_handover", err)
+		}
+		alreadyDone = true
+	}
+
+	if !alreadyDone {
+		// Deposit captured but the auto-skip hasn't committed yet; the
+		// webhook (or a retry) completes it.
+		result := core.FulfilResult{
+			"status":         checkout.Status,
+			"trustap_status": tx.Status,
+			"pending":        true,
+			"message":        "deposit captured; handover confirmation is still settling, retry in a moment",
+		}
+		return &result, nil
+	}
+
+	newStatus := store.StatusFulfilled
+	if tx.Status == "funds_released" || tx.FundsReleased != "" {
+		newStatus = store.StatusReleased
+	}
+	if err := ctx.Store.SetCheckoutStatus(checkoutID, newStatus); err != nil {
+		return nil, err
+	}
+
+	result := core.FulfilResult{
+		"status":         newStatus,
+		"trustap_status": tx.Status,
+		"message":        "handover confirmed; funds release after the complaint window",
+	}
+	return &result, nil
 }

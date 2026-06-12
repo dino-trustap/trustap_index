@@ -18,6 +18,9 @@ import (
 const (
 	StatusPendingPayment = "pending_payment"
 	StatusPaid           = "paid"
+	StatusFulfilled      = "fulfilled" // seller confirmed handover; complaint window running
+	StatusReleased       = "released"  // funds released to the seller
+	StatusRefunded       = "refunded"
 	StatusCancelled      = "cancelled"
 	StatusFailed         = "failed"
 )
@@ -436,4 +439,37 @@ func (s *Store) DailyPaidRevenue(merchantID string, days int) ([]int, error) {
 		}
 	}
 	return out, nil
+}
+
+// ListCheckoutsPage returns one page of a merchant's checkouts, newest
+// first, with optional status filter and description search.
+func (s *Store) ListCheckoutsPage(merchantID, status, query string, limit, offset int) ([]Checkout, int, error) {
+	q := s.db.Model(&Checkout{}).Where("merchant_id = ?", merchantID)
+	if status != "" {
+		q = q.Where("status = ?", status)
+	}
+	if query != "" {
+		q = q.Where("description ILIKE ?", "%"+query+"%")
+	}
+
+	var total int
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("couldn't count checkouts: %w", err)
+	}
+
+	var checkouts []Checkout
+	err := q.Order("created_at desc").Limit(limit).Offset(offset).Find(&checkouts).Error
+	if err != nil {
+		return nil, 0, fmt.Errorf("couldn't list checkouts: %w", err)
+	}
+	return checkouts, total, nil
+}
+
+// SetCheckoutStatus updates one checkout's status by checkout id.
+func (s *Store) SetCheckoutStatus(id, status string) error {
+	err := s.db.Model(&Checkout{}).Where("id = ?", id).Update("status", status).Error
+	if err != nil {
+		return fmt.Errorf("couldn't set checkout status: %w", err)
+	}
+	return nil
 }

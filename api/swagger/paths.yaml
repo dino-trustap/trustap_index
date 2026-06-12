@@ -348,3 +348,66 @@ paths:
         context: core
         meta:
           authorised_roles: []
+
+  /dashboard/merchants/{merchant_id}/orders:
+    get:
+      operationId: dashboardOrders
+      summary: Paginated orders for the dashboard
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+        - name: limit
+          in: query
+          required: false
+          type: integer
+        - name: offset
+          in: query
+          required: false
+          type: integer
+        - name: status
+          in: query
+          required: false
+          type: string
+        - name: search
+          in: query
+          required: false
+          type: string
+      responses:
+        200:
+          description: One page of orders
+          schema:
+            $ref: "#/definitions/OrdersPage"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []
+
+  /dashboard/merchants/{merchant_id}/orders/{checkout_id}/fulfil:
+    post:
+      operationId: fulfilOrder
+      summary: Fulfil a paid order (accept deposit and confirm handover)
+      description: |
+        Runs the p2p fulfilment sequence on the merchant's behalf:
+        accept_deposit, wait for the remainder auto-skip to commit, then
+        confirm_handover. After confirmation the complaint window runs and
+        funds release automatically.
+      parameters:
+        - name: merchant_id
+          in: path
+          required: true
+          type: string
+        - name: checkout_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: Fulfilment outcome
+          schema:
+            $ref: "#/definitions/FulfilResult"
+      x-toc-endpoint:
+        context: core
+        meta:
+          authorised_roles: []

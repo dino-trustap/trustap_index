@@ -330,6 +330,12 @@ func statusFromEvent(event map[string]any, code string) (string, bool) {
 				// p2p: the deposit covers the full price (skip_remainder),
 				// so deposit_paid means the buyer has paid in full.
 				return store.StatusPaid, true
+			case "seller_handover_confirmed":
+				return store.StatusFulfilled, true
+			case "funds_released":
+				return store.StatusReleased, true
+			case "deposit_refunded":
+				return store.StatusRefunded, true
 			case "cancelled":
 				return store.StatusCancelled, true
 			default:

@@ -208,9 +208,9 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
 
             {page === "overview" && <OverviewPage overview={overview} navigate={navigate} />}
             {page === "agents" && <AgentsPage agents={overview.agents || []} />}
-            {page === "catalog" && <CatalogPage health={overview.catalog_health} />}
+            {page === "catalog" && <CatalogPage health={overview.catalog_health} onSaved={loadOverview} />}
             {page === "connections" && <ConnectionsPage connection={overview.connection} />}
-            {page === "orders" && <OrdersPage checkouts={overview.recent_checkouts || []} />}
+            {page === "orders" && <OrdersPage merchantId={merchantId} apiFetch={apiFetch} />}
           </div>
         )}
       </main>
@@ -557,14 +557,128 @@ function ReadyCount({ readiness }) {
   );
 }
 
-function CatalogPage({ health }) {
+const EDIT_FIELDS = [
+  { key: "image_url", label: "Image URL", issue: "missing_image", placeholder: "https://..." },
+  { key: "gtin", label: "GTIN", issue: "missing_gtin", placeholder: "e.g. 5012345678900" },
+  { key: "brand", label: "Brand", issue: "missing_brand", placeholder: "Brand name" },
+  { key: "category", label: "Category", issue: "missing_category", placeholder: "e.g. audio" },
+  { key: "mpn", label: "MPN", issue: null, placeholder: "Manufacturer part number" },
+  { key: "quantity", label: "Stock", issue: "out_of_stock", type: "number" },
+];
+
+function ProductEditor({ product, onSaved, onClose }) {
+  const issues = product.issues || [];
+  const [values, setValues] = useState({
+    image_url: product.image_url || "",
+    gtin: product.gtin || "",
+    brand: product.brand || "",
+    category: product.category || "",
+    mpn: product.mpn || "",
+    quantity: product.quantity ?? 0,
+    description: product.description || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const set = (k, v) => setValues((old) => ({ ...old, [k]: v }));
+
+  const save = () => {
+    setSaving(true);
+    setError(null);
+    const body = {
+      image_url: values.image_url,
+      gtin: values.gtin,
+      brand: values.brand,
+      category: values.category,
+      mpn: values.mpn,
+      description: values.description,
+      quantity: Math.max(0, parseInt(values.quantity, 10) || 0),
+    };
+    fetch(`/api/products/${product.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok) throw new Error(d.message || "save failed");
+        onSaved();
+        onClose();
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setSaving(false));
+  };
+
+  const descShort = !values.description || values.description.trim().length < 20;
+
+  return (
+    <tr className="editor-row">
+      <td colSpan="5">
+        <div className="editor">
+          <div className="editor-grid">
+            {EDIT_FIELDS.map((f) => {
+              const missing = f.issue && issues.includes(f.issue);
+              return (
+                <label key={f.key} className={missing ? "field field-missing" : "field"}>
+                  <span className="field-label">
+                    {f.label}
+                    {missing && <span className="field-flag">{ISSUE_LABELS[f.issue]}</span>}
+                  </span>
+                  <input
+                    type={f.type || "text"}
+                    value={values[f.key]}
+                    min={f.type === "number" ? 0 : undefined}
+                    placeholder={f.placeholder}
+                    onChange={(e) => set(f.key, e.target.value)}
+                  />
+                  {f.issue && <span className="field-hint">{ISSUE_HINTS[f.issue]}</span>}
+                </label>
+              );
+            })}
+            <label className={`field field-wide ${descShort ? "field-missing" : ""}`}>
+              <span className="field-label">
+                Description
+                {descShort && <span className="field-flag">{values.description ? "Too short" : "Missing"}</span>}
+              </span>
+              <textarea
+                rows="3"
+                value={values.description}
+                placeholder="What the product is, what it includes, why it is good. Agents rank on this."
+                onChange={(e) => set("description", e.target.value)}
+              />
+              <span className="field-hint">{ISSUE_HINTS.missing_description}</span>
+            </label>
+          </div>
+          {error && <div className="banner banner-error">{error}</div>}
+          <div className="editor-actions">
+            <button className="btn btn-ghost btn-small" onClick={onClose} disabled={saving}>Cancel</button>
+            <button className="btn btn-primary btn-small" onClick={save} disabled={saving}>
+              {saving ? "Saving..." : "Save product"}
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function CatalogPage({ health, onSaved }) {
+  const PAGE = 25;
   const [query, setQuery] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [editing, setEditing] = useState(null);
   const products = health?.products || [];
   const summary = health?.summary;
+
   const filtered = products.filter((p) =>
     p.title.toLowerCase().includes(query.toLowerCase())
   );
+  const pageRows = filtered.slice(offset, offset + PAGE);
   const pct = summary && summary.total > 0 ? Math.round((summary.ready_all / summary.total) * 100) : 0;
+  const pageStart = filtered.length === 0 ? 0 : offset + 1;
+  const pageEnd = Math.min(offset + PAGE, filtered.length);
+
+  useEffect(() => { setOffset(0); }, [query]);
 
   return (
     <>
@@ -579,7 +693,7 @@ function CatalogPage({ health }) {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {pageRows.length === 0 ? (
         <div className="card empty">
           {products.length === 0
             ? "No products yet. Add products via the API to appear in agent catalogs."
@@ -598,27 +712,45 @@ function CatalogPage({ health }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
-                  <td className="td-title">{p.title}</td>
-                  <td className="td-nowrap num">{money(p.price, p.currency)}</td>
-                  <td className={`num ${p.quantity <= 0 ? "td-bad" : ""}`}>{p.quantity}</td>
-                  <td className="td-nowrap"><ReadyCount readiness={p.readiness} /></td>
-                  <td>
-                    {(p.issues || []).length === 0 ? (
-                      <span className="ok-text">{ICONS.check} Complete</span>
-                    ) : (
-                      (p.issues || []).map((iss) => (
-                        <span key={iss} className="chip" title={ISSUE_HINTS[iss] || iss}>
-                          {ISSUE_LABELS[iss] || iss}
-                        </span>
-                      ))
-                    )}
-                  </td>
-                </tr>
+              {pageRows.map((p) => (
+                <React.Fragment key={p.id}>
+                  <tr className={`row-click ${editing === p.id ? "row-open" : ""}`} onClick={() => setEditing(editing === p.id ? null : p.id)}>
+                    <td className="td-title">{p.title}</td>
+                    <td className="td-nowrap num">{money(p.price, p.currency)}</td>
+                    <td className={`num ${p.quantity <= 0 ? "td-bad" : ""}`}>{p.quantity}</td>
+                    <td className="td-nowrap"><ReadyCount readiness={p.readiness} /></td>
+                    <td>
+                      {(p.issues || []).length === 0 ? (
+                        <span className="ok-text">{ICONS.check} Complete</span>
+                      ) : (
+                        <>
+                          {(p.issues || []).map((iss) => (
+                            <span key={iss} className="chip" title={ISSUE_HINTS[iss] || iss}>
+                              {ISSUE_LABELS[iss] || iss}
+                            </span>
+                          ))}
+                          <button className="link-btn" onClick={(e) => { e.stopPropagation(); setEditing(p.id); }}>Fix</button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                  {editing === p.id && (
+                    <ProductEditor product={p} onSaved={onSaved} onClose={() => setEditing(null)} />
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {filtered.length > PAGE && (
+        <div className="pager">
+          <span className="mono dim">{pageStart}-{pageEnd} of {filtered.length}</span>
+          <div className="pager-btns">
+            <button className="btn btn-ghost btn-small" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE))}>Previous</button>
+            <button className="btn btn-ghost btn-small" disabled={pageEnd >= filtered.length} onClick={() => setOffset(offset + PAGE)}>Next</button>
+          </div>
         </div>
       )}
     </>
@@ -748,32 +880,107 @@ function ConnectionsPage({ connection }) {
 
 /* ---------------- orders ---------------- */
 
-function OrdersPage({ checkouts }) {
-  if (checkouts.length === 0) {
-    return <div className="card empty">No orders yet.</div>;
-  }
+const ORDER_FILTERS = [
+  { id: "", label: "All" },
+  { id: "pending_payment", label: "Pending" },
+  { id: "paid", label: "Paid" },
+  { id: "fulfilled", label: "Fulfilled" },
+  { id: "released", label: "Released" },
+  { id: "cancelled", label: "Cancelled" },
+];
+
+function OrdersPage({ merchantId, apiFetch }) {
+  const LIMIT = 25;
+  const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [status, setStatus] = useState("");
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const load = useCallback(() => {
+    if (!merchantId) return;
+    setLoading(true);
+    const params = new URLSearchParams({ limit: String(LIMIT), offset: String(offset) });
+    if (status) params.set("status", status);
+    if (debounced) params.set("search", debounced);
+    apiFetch(`/api/dashboard/merchants/${merchantId}/orders?${params}`)
+      .then((d) => {
+        setRows(d.orders || []);
+        setTotal(d.total || 0);
+        setError(null);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [apiFetch, merchantId, offset, status, debounced]);
+
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { setOffset(0); }, [status, debounced]);
+
+  const pageStart = total === 0 ? 0 : offset + 1;
+  const pageEnd = Math.min(offset + LIMIT, total);
+
   return (
-    <div className="card table-card">
-      <table>
-        <thead>
-          <tr><th>Order</th><th>Status</th><th>Trustap tx</th><th>Created</th><th className="num">Amount</th></tr>
-        </thead>
-        <tbody>
-          {checkouts.map((c) => (
-            <tr key={c.id}>
-              <td className="td-title">
-                {c.description}
-                <span className="row-sub">{c.id.slice(0, 8)}</span>
-              </td>
-              <td><OrderDot status={c.status} withLabel /></td>
-              <td className="num mono">{c.transaction_id || "-"}</td>
-              <td className="td-nowrap mono dim-cell">{timeAgo(c.created_at)}</td>
-              <td className="td-nowrap num strong">{money(c.price, c.currency)}</td>
-            </tr>
+    <>
+      <div className="table-toolbar">
+        <div className="seg">
+          {ORDER_FILTERS.map((f) => (
+            <button key={f.id} className={status === f.id ? "on" : ""} onClick={() => setStatus(f.id)}>
+              {f.label}
+            </button>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </div>
+        <input
+          className="search"
+          placeholder="Search orders..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {error && <div className="banner banner-error">{error}</div>}
+
+      {rows.length === 0 && !loading ? (
+        <div className="card empty">{total === 0 && !status && !debounced ? "No orders yet." : "No orders match."}</div>
+      ) : (
+        <div className="card table-card" style={{ opacity: loading ? 0.6 : 1 }}>
+          <table>
+            <thead>
+              <tr><th>Order</th><th>Status</th><th>Trustap tx</th><th>Created</th><th className="num">Amount</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((c) => (
+                <tr key={c.id}>
+                  <td className="td-title">
+                    {c.description}
+                    <span className="row-sub">{c.id.slice(0, 8)}</span>
+                  </td>
+                  <td><OrderDot status={c.status} withLabel /></td>
+                  <td className="num mono">{c.transaction_id || "-"}</td>
+                  <td className="td-nowrap mono dim-cell">{timeAgo(c.created_at)}</td>
+                  <td className="td-nowrap num strong">{money(c.price, c.currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="pager">
+        <span className="mono dim">{pageStart}-{pageEnd} of {total}</span>
+        <div className="pager-btns">
+          <button className="btn btn-ghost btn-small" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - LIMIT))}>Previous</button>
+          <button className="btn btn-ghost btn-small" disabled={pageEnd >= total} onClick={() => setOffset(offset + LIMIT)}>Next</button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -796,6 +1003,9 @@ function StatusDot({ status, withLabel, labels }) {
 function OrderDot({ status, withLabel = false }) {
   const meta = {
     paid: { label: "Paid", cls: "dot-green" },
+    fulfilled: { label: "Fulfilled", cls: "dot-green" },
+    released: { label: "Funds released", cls: "dot-green" },
+    refunded: { label: "Refunded", cls: "dot-amber" },
     pending_payment: { label: "Pending payment", cls: "dot-amber" },
     cancelled: { label: "Cancelled", cls: "dot-gray" },
     failed: { label: "Failed", cls: "dot-red" },
