@@ -230,11 +230,22 @@ func run(
 					if name == "" {
 						name = "index.html"
 					}
-					if _, err := fs.Stat(dashboardDist, name); err != nil {
+					if _, err := fs.Stat(dashboardDist, name); err != nil && !strings.HasPrefix(name, "assets/") {
 						name = "index.html" // SPA fallback for client-side routes
 					}
+					// Hashed assets are immutable; never serve the SPA shell in
+					// their place (a missing hash means a stale browser cache and
+					// must 404 so the client refetches index.html).
+					if strings.HasPrefix(name, "assets/") {
+						if _, err := fs.Stat(dashboardDist, name); err != nil {
+							w.WriteHeader(http.StatusNotFound)
+							return nil
+						}
+						w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+					}
 					// FileServer 301-redirects direct index.html requests, so
-					// serve the SPA shell by hand.
+					// serve the SPA shell by hand. The shell must never be
+					// cached: it carries the current asset hashes.
 					if name == "index.html" {
 						shell, err := fs.ReadFile(dashboardDist, "index.html")
 						if err != nil {
@@ -242,6 +253,7 @@ func run(
 							return nil
 						}
 						w.Header().Set("Content-Type", "text/html; charset=utf-8")
+						w.Header().Set("Cache-Control", "no-cache")
 						_, _ = w.Write(shell)
 						return nil
 					}

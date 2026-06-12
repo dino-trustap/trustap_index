@@ -20,6 +20,7 @@ swagger_codegen_templs:= \
 deps:= \
 	$(shell find $(src_dirs) -name '*.go' -type f 2>/dev/null) \
 	$(shell find $(tgt_artfs_dir) -name '*.go' -type f 2>/dev/null) \
+	$(shell find frontend/dist frontend/embed.go -type f 2>/dev/null) \
 	$(tgt_gen_dir)/swagger_server/endpoint.go
 
 # Build all artefacts.
