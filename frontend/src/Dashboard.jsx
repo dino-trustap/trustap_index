@@ -181,6 +181,7 @@ export default function Dashboard({ token, userName, onLogout, devMode }) {
           {onLogout && (
             <button className="btn btn-ghost btn-small" onClick={onLogout}>Log out</button>
           )}
+          <div className="ops-note"><i />All systems operational</div>
           <div className="secure-note">
             {ICONS.lock}
             <span>Payments protected by Trustap</span>
@@ -422,7 +423,7 @@ function OverviewPage({ overview, navigate }) {
                   <StatusDot status={a.status} />
                   <span className="grow strong">{m.label}</span>
                   <Bars data={a.activity || []} height={20} barWidth={4} gap={2} />
-                  <span className="dim w-72">{a.hits_24h} · {timeAgo(a.last_fetch)}</span>
+                  <span className="dim w-72 mono">{a.hits_24h} · {timeAgo(a.last_fetch)}</span>
                 </div>
               );
             })}
@@ -465,7 +466,7 @@ function OverviewPage({ overview, navigate }) {
               <div className="list-row" key={c.id}>
                 <OrderDot status={c.status} />
                 <span className="grow strong">{c.description}</span>
-                <span className="dim">{timeAgo(c.created_at)}</span>
+                <span className="dim mono">{timeAgo(c.created_at)}</span>
                 <span className="num strong w-90">{money(c.price, c.currency)}</span>
               </div>
             ))
@@ -765,8 +766,8 @@ function OrdersPage({ checkouts }) {
                 <span className="row-sub">{c.id.slice(0, 8)}</span>
               </td>
               <td><OrderDot status={c.status} withLabel /></td>
-              <td className="num">{c.transaction_id || "-"}</td>
-              <td className="td-nowrap">{timeAgo(c.created_at)}</td>
+              <td className="num mono">{c.transaction_id || "-"}</td>
+              <td className="td-nowrap mono dim-cell">{timeAgo(c.created_at)}</td>
               <td className="td-nowrap num strong">{money(c.price, c.currency)}</td>
             </tr>
           ))}

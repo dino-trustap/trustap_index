@@ -667,3 +667,128 @@ th.num { text-align: right; }
 .head-hint { color: var(--text-3); font-size: 0.74rem; }
 .foot-link { color: var(--primary); font-weight: 500; text-decoration: none; }
 .foot-link:hover { text-decoration: underline; }
+
+/* ============ v4: next-gen type + texture ============ */
+
+:root {
+  --font-display: "Space Grotesk", "Geist", sans-serif;
+  --font-body: "Geist", -apple-system, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
+  --bg: #f5f7f9;
+  --text: #0e1525;
+  --line: #dfe5ec;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* blueprint dot grid on the work surface, cards float above it */
+.content {
+  background-image: radial-gradient(circle, #e3e9f0 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ---- weight discipline: structure via family, not boldness ---- */
+
+.page-head h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+}
+.card-head h2, h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.86rem;
+  letter-spacing: 0.005em;
+}
+.sidebar-product {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+}
+.agent-name, .conn-title, .tile-name { font-weight: 500; }
+.td-title { font-weight: 500; }
+.strong { font-weight: 500; }
+.user-name { font-weight: 400; }
+.merchant-select, .merchant-static { font-weight: 500; }
+.sidebar-nav button { font-weight: 450; font-size: 0.84rem; }
+.sidebar-nav button.active { font-weight: 500; }
+.link-btn { font-weight: 500; }
+.btn { font-weight: 500; }
+.pill { font-weight: 500; letter-spacing: 0.01em; }
+.chip { font-weight: 450; }
+.tile-badge { font-weight: 500; }
+.status-dot { font-weight: 450; }
+
+/* ---- the ledger: every datum in mono ---- */
+
+.mono { font-family: var(--font-mono); font-size: 0.78rem; }
+.stat-value {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+.stat-context { font-size: 0.74rem; }
+.num { font-family: var(--font-mono); font-size: 0.8rem; }
+.row-sub { font-family: var(--font-mono); }
+.surface-when { font-family: var(--font-mono); font-size: 0.68rem; }
+.agent-metric { font-family: var(--font-mono); font-weight: 500; }
+.agent-chart-meta { font-family: var(--font-mono); font-size: 0.68rem; }
+.agent-chart-meta strong { font-weight: 500; }
+.page-side { font-family: var(--font-mono); font-size: 0.7rem; }
+.card-foot { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.01em; }
+.axis-label, .tip-value, .tip-label { font-family: var(--font-mono); }
+.tip-value { font-weight: 500; }
+.nav-count { font-family: var(--font-mono); font-size: 0.66rem; }
+.dim-cell { color: var(--text-3); }
+th {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.secure-note { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.02em; }
+.empty-inline, .conn-detail, .page-sub, .tile-sub, .stat-context { font-weight: 400; }
+
+/* ---- sharper, quieter chrome ---- */
+
+.card { border-radius: 7px; box-shadow: 0 1px 2px rgba(14, 21, 37, 0.04); }
+.btn { border-radius: 6px; }
+.sidebar { background: #fbfcfd; }
+.sidebar-nav button { border-radius: 5px; }
+.sidebar-nav button.active {
+  background: var(--primary-soft);
+  box-shadow: inset 2px 0 0 var(--primary);
+  border-radius: 3px 5px 5px 3px;
+}
+.seg button { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.02em; }
+
+/* operational status in the sidebar */
+.ops-note {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+  width: 100%;
+}
+.ops-note i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px var(--green-bg);
+}
